@@ -3,6 +3,8 @@ package org.veupathdb.lib.s3.s34k.minio
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.veupathdb.lib.s3.s34k.errors.InvalidRequestConfigException
 import org.veupathdb.lib.s3.s34k.params.bucket.BucketExistsParams
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -69,6 +71,14 @@ class UtilToMinioTest {
       tgt.extraQueryParams().get("foo").forEach { mp[it] = true }
 
       assertNotNull(mp["bar"])
+    }
+
+    @Test
+    @DisplayName("throws an exception if the params bucket name is not set")
+    fun t5() {
+      assertThrows<InvalidRequestConfigException> {
+        BucketExistsParams().toMinio()
+      }
     }
 
   }

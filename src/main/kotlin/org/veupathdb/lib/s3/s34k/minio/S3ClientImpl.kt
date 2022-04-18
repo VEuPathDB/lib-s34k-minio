@@ -11,10 +11,7 @@ import org.veupathdb.lib.s3.s34k.S3ErrorCode
 import org.veupathdb.lib.s3.s34k.errors.BucketAlreadyExistsException
 import org.veupathdb.lib.s3.s34k.errors.BucketNotFoundException
 import org.veupathdb.lib.s3.s34k.errors.S34kException
-import org.veupathdb.lib.s3.s34k.params.bucket.BucketExistsParams
-import org.veupathdb.lib.s3.s34k.params.bucket.BucketGetParams
-import org.veupathdb.lib.s3.s34k.params.bucket.BucketListParams
-import org.veupathdb.lib.s3.s34k.params.bucket.BucketPutParams
+import org.veupathdb.lib.s3.s34k.params.bucket.*
 
 internal class S3ClientImpl(config: S3Config) : S3Client {
 
@@ -174,7 +171,7 @@ internal class S3ClientImpl(config: S3Config) : S3Client {
 
       Log.debug("Looking for bucket {}", params.bucket)
       for (b in list) {
-        if (b.name() == params.bucket) {
+        if (b.name() == params.bucket!!.name) {
           Log.debug("Bucket {} found", params.bucket)
           val out =  S3BucketImpl(
             client,
@@ -210,7 +207,15 @@ internal class S3ClientImpl(config: S3Config) : S3Client {
       val list = client.listBuckets()
       Log.debug("Bucket list successfully fetched, got {} buckets.", list.size)
 
-      return list.map { S3BucketImpl(client, this, it.name(), null, it.creationDate().toOffsetDateTime()) }
+      return list.map {
+        S3BucketImpl(
+          client,
+          this,
+          BucketName(it.name()),
+          null,
+          it.creationDate().toOffsetDateTime()
+        )
+      }
     } catch (e: MinioException) {
       throw S34kException("Failed to fetch bucket list", e)
     }
@@ -229,7 +234,14 @@ internal class S3ClientImpl(config: S3Config) : S3Client {
       val list = client.listBuckets(params.toMinio())
       Log.debug("Bucket list successfully fetched, got {} buckets.", list.size)
 
-      val out = list.map { S3BucketImpl(client, this, it.name(), null, it.creationDate().toOffsetDateTime()) }
+      val out = list.map {
+        S3BucketImpl(
+          client,
+          this,
+          BucketName(it.name()),
+          null, it.creationDate().toOffsetDateTime()
+        )
+      }
 
       params.callback?.let {
         Log.debug("Executing action {} in listBuckets", it)

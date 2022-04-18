@@ -4,9 +4,6 @@ package org.veupathdb.lib.s3.s34k.minio
 
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
-import io.minio.BucketArgs
-import org.veupathdb.lib.s3.s34k.errors.InvalidRequestConfigException
-import org.veupathdb.lib.s3.s34k.params.AbstractRequestParams
 
 
 internal inline fun Map<String, Array<String>>.toMultiMap(): Multimap<String, String> {

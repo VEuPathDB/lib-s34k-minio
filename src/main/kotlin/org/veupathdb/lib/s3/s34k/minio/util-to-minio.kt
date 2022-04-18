@@ -3,7 +3,7 @@
 package org.veupathdb.lib.s3.s34k.minio
 
 import io.minio.*
-import org.veupathdb.lib.s3.s34k.params.AbstractRequestParams
+import org.veupathdb.lib.s3.s34k.params.RequestParams
 import org.veupathdb.lib.s3.s34k.params.bucket.*
 import org.veupathdb.lib.s3.s34k.params.`object`.*
 
@@ -18,7 +18,7 @@ import org.veupathdb.lib.s3.s34k.params.`object`.*
  *
  * @param builder Builder instance.
  */
-private inline fun <R: BaseArgs.Builder<R, B>, B: BaseArgs> AbstractRequestParams.addHTTPExtras(
+private inline fun <R: BaseArgs.Builder<R, B>, B: BaseArgs> RequestParams.addHTTPExtras(
   builder: BaseArgs.Builder<in R, out B>
 ) {
   headers.ifNotEmpty { builder.extraHeaders(it.toMultiMap()) }
@@ -40,12 +40,12 @@ private inline fun <R: BaseArgs.Builder<R, B>, B: BaseArgs> AbstractRequestParam
  *
  * @param builder Builder instance.
  */
-private inline fun <R: BucketArgs.Builder<R, B>, B: BucketArgs> AbstractRequestParams.addBucketParams(
-  bucket: String?,
+private inline fun <R: BucketArgs.Builder<R, B>, B: BucketArgs> RequestParams.addBucketParams(
+  bucket: BucketName?,
   region: String?,
   builder: BucketArgs.Builder<R, out BucketArgs>
 ) {
-  builder.bucket(reqNonBlank("bucket", reqSet("bucket", bucket)))
+  builder.bucket(reqSet("bucket", bucket).name)
   region.ifNotNull(builder::region)
   addHTTPExtras(builder)
 }
@@ -66,7 +66,7 @@ private inline fun <R: BucketArgs.Builder<R, B>, B: BucketArgs> AbstractRequestP
  * @param builder Builder instance.
  */
 private inline fun <R: ObjectArgs.Builder<R, B>, B: ObjectArgs> SealedObjReqParams.addObjectParams(
-  bucket: String?,
+  bucket: BucketName?,
   region: String?,
   builder: ObjectArgs.Builder<in R, out B>
 ) {
@@ -79,7 +79,7 @@ private inline fun <R: ObjectArgs.Builder<R, B>, B: ObjectArgs> SealedObjReqPara
 // region Bucket Params
 
 internal inline fun BucketExistsParams.toMinio() =
-  BucketExistsArgs.builder().also { addBucketParams(reqBucket(), region, it) }.build()
+  BucketExistsArgs.builder().also { addBucketParams(bucket, region, it) }.build()
 
 
 internal inline fun BucketListParams.toMinio() =
@@ -89,17 +89,16 @@ internal inline fun BucketListParams.toMinio() =
 internal inline fun BucketGetParams.toMinio() =
   ListBucketsArgs.builder().also { addHTTPExtras(it) }.build()
 
+
 internal inline fun BucketPutParams.toMinio() =
-  MakeBucketArgs.builder().also {
-    addBucketParams(bucket, region, it)
-  }.build()
+  MakeBucketArgs.builder().also { addBucketParams(bucket, region, it) }.build()
 
 
-internal inline fun BucketTagGetParams.toMinio(name: String, region: String?) =
+internal inline fun BucketTagGetParams.toMinio(name: BucketName, region: String?) =
   GetBucketTagsArgs.builder().also { addBucketParams(name, region, it) }.build()
 
 
-internal inline fun BucketTagPutParams.toMinio(name: String, region: String?) =
+internal inline fun BucketTagPutParams.toMinio(name: BucketName, region: String?) =
   SetBucketTagsArgs.builder().also {
     addBucketParams(name, region, it)
     it.tags(getTagsMap())
@@ -110,14 +109,14 @@ internal inline fun BucketTagPutParams.toMinio(name: String, region: String?) =
 
 // region Object Params
 
-internal inline fun DirectoryPutParams.toMinio(bucket: String, region: String?) =
+internal inline fun DirectoryPutParams.toMinio(bucket: BucketName, region: String?) =
   PutObjectArgs.builder().also {
     var path = reqPath()
     if (!path.endsWith('/'))
       path = "$path/"
 
     it.`object`(path)
-    it.bucket(bucket)
+    it.bucket(bucket.name)
     region.ifSet(it::region)
     it.stream(ByteArray(0).inputStream(), 0, -1)
     it.extraHeaders(headers.toMultiMap())
@@ -125,15 +124,15 @@ internal inline fun DirectoryPutParams.toMinio(bucket: String, region: String?) 
     it.tags(getTagsMap())
   }.build()
 
-internal inline fun ObjectDownloadParams.toMinio(bucket: String, region: String?) =
+internal inline fun ObjectDownloadParams.toMinio(bucket: BucketName, region: String?) =
   GetObjectArgs.builder().also { addObjectParams(bucket, region, it) }.build()
 
 
-internal inline fun ObjectExistsParams.toMinio(bucket: String, region: String?) =
+internal inline fun ObjectExistsParams.toMinio(bucket: BucketName, region: String?) =
   StatObjectArgs.builder().also { addObjectParams(bucket, region, it) }.build()
 
 
-internal inline fun ObjectFilePutParams.toMinio(bucket: String, region: String?) =
+internal inline fun ObjectFilePutParams.toMinio(bucket: BucketName, region: String?) =
   UploadObjectArgs.builder().also {
     it.filename(localFile.reqLFExists(this).absolutePath, partSize)
     it.tags(getTagsMap())
@@ -141,7 +140,7 @@ internal inline fun ObjectFilePutParams.toMinio(bucket: String, region: String?)
   }.build()
 
 
-internal inline fun ObjectTouchParams.toMinio(bucket: String, region: String?) =
+internal inline fun ObjectTouchParams.toMinio(bucket: BucketName, region: String?) =
   PutObjectArgs.builder().also {
     addBucketParams(bucket, region, it)
     it.stream(ByteArray(0).inputStream(), 0, -1)
@@ -149,11 +148,11 @@ internal inline fun ObjectTouchParams.toMinio(bucket: String, region: String?) =
   }.build()
 
 
-internal inline fun ObjectGetParams.toMinio(bucket: String, region: String?) =
+internal inline fun ObjectGetParams.toMinio(bucket: BucketName, region: String?) =
   GetObjectArgs.builder().also { addObjectParams(bucket, region, it) }.build()
 
 
-internal inline fun ObjectPutParams.toMinio(bucket: String, region: String?) =
+internal inline fun ObjectPutParams.toMinio(bucket: BucketName, region: String?) =
   PutObjectArgs.builder().also {
     addBucketParams(bucket, region, it)
     it.stream(stream, -1, partSize)
@@ -161,17 +160,17 @@ internal inline fun ObjectPutParams.toMinio(bucket: String, region: String?) =
   }.build()
 
 
-internal inline fun ObjectTagGetParams.toMinio(bucket: String, region: String?) =
+internal inline fun ObjectTagGetParams.toMinio(bucket: BucketName, region: String?) =
   GetObjectTagsArgs.builder().also { addObjectParams(bucket, region, it) }.build()
 
-internal inline fun ObjectTagPutParams.toMinio(bucket: String, region: String?) =
+internal inline fun ObjectTagPutParams.toMinio(bucket: BucketName, region: String?) =
   SetObjectTagsArgs.builder().also {
     addObjectParams(bucket, region, it)
     it.tags(getTagsMap())
   }.build()
 
 
-internal inline fun ObjectStatParams.toMinio(bucket: String, region: String?) =
+internal inline fun ObjectStatParams.toMinio(bucket: BucketName, region: String?) =
   StatObjectArgs.builder().also { addObjectParams(bucket, region, it) }.build()
 
 // endregion
