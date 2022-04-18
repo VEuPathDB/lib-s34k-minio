@@ -5,9 +5,9 @@ import org.veupathdb.lib.s3.s34k.S3FileObject
 import org.veupathdb.lib.s3.s34k.S3Headers
 import java.io.File
 
-open class S3FileObjectImpl(
+internal open class S3FileObjectImpl(
   bucket:  S3Bucket,
-  region:  String,
+  region:  String?,
   headers: S3Headers,
   path:    String,
 

@@ -4,7 +4,7 @@ import io.minio.StatObjectResponse
 import org.veupathdb.lib.s3.s34k.*
 import java.time.OffsetDateTime
 
-class S3ObjectMetaImpl(
+internal class S3ObjectMetaImpl(
                bucket:        S3Bucket,
                region:        String?,
                headers:       S3Headers,

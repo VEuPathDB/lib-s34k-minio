@@ -1,11 +1,14 @@
 package org.veupathdb.lib.s3.s34k.minio
 
 import io.minio.MinioClient
+import io.minio.errors.ErrorResponseException
 import io.minio.errors.MinioException
 import org.slf4j.LoggerFactory
 import org.veupathdb.lib.s3.s34k.S3Bucket
 import org.veupathdb.lib.s3.s34k.S3Client
 import org.veupathdb.lib.s3.s34k.S3Config
+import org.veupathdb.lib.s3.s34k.S3ErrorCode
+import org.veupathdb.lib.s3.s34k.errors.BucketAlreadyExistsException
 import org.veupathdb.lib.s3.s34k.errors.BucketNotFoundException
 import org.veupathdb.lib.s3.s34k.errors.S34kException
 import org.veupathdb.lib.s3.s34k.params.bucket.BucketExistsParams
@@ -13,21 +16,16 @@ import org.veupathdb.lib.s3.s34k.params.bucket.BucketGetParams
 import org.veupathdb.lib.s3.s34k.params.bucket.BucketListParams
 import org.veupathdb.lib.s3.s34k.params.bucket.BucketPutParams
 
-class S3ClientImpl : S3Client {
+internal class S3ClientImpl(config: S3Config) : S3Client {
 
   private val Log = LoggerFactory.getLogger(this::class.java)
 
-  private var nullClient: MinioClient? = null
+  private val client: MinioClient
 
-  private inline val client get() = nullClient!!
+  init {
+    Log.trace("::init(config = {})", config)
 
-  override fun initialize(config: S3Config) {
-    Log.trace("initialize(config = {})", config)
-
-    if (nullClient != null)
-      throw IllegalStateException("S3Client#initialize called more than once.")
-
-    nullClient = MinioClient.builder()
+    client = MinioClient.builder()
       .region(config.region)
       .endpoint(config.url)
       .credentials(config.accessKey, config.secretKey)
@@ -38,23 +36,35 @@ class S3ClientImpl : S3Client {
 
   override fun bucketExists(bucketName: String, region: String?): Boolean {
     Log.trace("bucketExists(bucketName = {}, region = {})", bucketName, region)
-    return bucketExists(BucketExistsParams().also {
-      it.bucket = bucketName
-      it.region = region
-    })
+    return bucketExists(BucketExistsParams(bucketName, region))
   }
 
 
   override fun bucketExists(action: BucketExistsParams.() -> Unit): Boolean {
-    val params = BucketExistsParams()
-
-    action(params)
-    return client.bucketExists(params.toMinio())
+    Log.trace("bucketExists(action = {})", action)
+    return bucketExists(BucketExistsParams().also(action))
   }
 
 
-  override fun bucketExists(params: BucketExistsParams) =
-    client.bucketExists(params.toMinio())
+  override fun bucketExists(params: BucketExistsParams): Boolean {
+    Log.trace("bucketExists(params = {})", params)
+
+    try {
+      Log.debug("Attempting to check for the existence of bucket {}", params.bucket)
+      val out = client.bucketExists(params.toMinio())
+      Log.debug("Successfully checked for the existence of bucket {}, result: {}", params.bucket, out)
+
+      params.callback?.also {
+        Log.debug("Executing bucketExists callback {}", it)
+        it.invoke(out)
+      }
+
+
+      return out
+    } catch (e: MinioException) {
+      throw S34kException("Failed to check for bucket {} existence", e)
+    }
+  }
 
   // endregion
 
@@ -62,15 +72,40 @@ class S3ClientImpl : S3Client {
   // region: Create Bucket
 
   override fun createBucket(bucketName: String, region: String?): S3Bucket {
-    TODO("Not yet implemented")
-  }
-
-  override fun createBucket(params: BucketPutParams): S3Bucket {
-    TODO("Not yet implemented")
+    Log.trace("createBucket(bucketName = {}, region = {})", bucketName, region)
+    return createBucket(BucketPutParams(bucketName, region))
   }
 
   override fun createBucket(action: BucketPutParams.() -> Unit): S3Bucket {
-    TODO("Not yet implemented")
+    Log.trace("createBucket(action = {})", action)
+    return createBucket(BucketPutParams().also(action))
+  }
+
+  override fun createBucket(params: BucketPutParams): S3Bucket {
+    Log.trace("createBucket(params = {})", params)
+
+    try {
+      Log.debug("Attempting to create bucket {}", params.bucket)
+      client.makeBucket(params.toMinio())
+      Log.debug("Successfully created bucket {}", params.bucket)
+
+      val out = getBucket(params.toGetParams())
+
+      params.callback?.let {
+        Log.debug("Executing action {} in createBucket", it)
+        it.invoke(out)
+      }
+
+      return out
+    } catch (e: MinioException) {
+      if (e is ErrorResponseException && e.errorResponse().code() == S3ErrorCode.BucketAlreadyExists) {
+        Log.debug("Bucket {} already exists", params.bucket)
+        throw BucketAlreadyExistsException(params.bucket!!, e)
+      } else {
+        throw S34kException("Failed to create bucket ${params.bucket}", e)
+      }
+    }
+
   }
 
   // endregion
@@ -78,19 +113,40 @@ class S3ClientImpl : S3Client {
 
   // region: Create Bucket if Not Exists
 
-  override fun createBucketIfNotExists(
-    bucketName: String,
-    region: String?,
-  ): S3Bucket {
-    TODO("Not yet implemented")
-  }
-
-  override fun createBucketIfNotExists(params: BucketPutParams): S3Bucket {
-    TODO("Not yet implemented")
+  override fun createBucketIfNotExists(bucketName: String, region: String?): S3Bucket {
+    Log.trace("createBucketIfNotExists(bucketName = {}, region = {})", bucketName, region)
+    return createBucketIfNotExists(BucketPutParams(bucketName, region))
   }
 
   override fun createBucketIfNotExists(action: BucketPutParams.() -> Unit): S3Bucket {
-    TODO("Not yet implemented")
+    Log.trace("createBucketIfNotExists(action = {})", action)
+    return createBucketIfNotExists(BucketPutParams().also(action))
+  }
+
+  override fun createBucketIfNotExists(params: BucketPutParams): S3Bucket {
+    Log.trace("createBucketIfNotExists(params = {})", params)
+
+    try {
+      Log.debug("Attempting to create bucket {} with exists error catch", params.bucket)
+      client.makeBucket(params.toMinio())
+      Log.debug("Successfully created bucket {} with exists error catch", params.bucket)
+
+    } catch (e: MinioException) {
+      if (e is ErrorResponseException && e.errorResponse().code() == S3ErrorCode.BucketAlreadyExists) {
+        Log.debug("Bucket {} already exists with exists error catch", params.bucket)
+      } else {
+        throw S34kException("Create bucket if not exists failed", e)
+      }
+    }
+
+    val out = getBucket(params.toGetParams())
+
+    params.callback?.let {
+      Log.debug("Executing action {} in createBucketIfNotExists", it)
+      it.invoke(out)
+    }
+
+    return out
   }
 
   // endregion
@@ -100,22 +156,7 @@ class S3ClientImpl : S3Client {
 
   override fun getBucket(bucketName: String, region: String?): S3Bucket {
     Log.trace("getBucket(bucketName = {}, region = {})", bucketName, region)
-
-    try {
-      Log.debug("Attempting to fetch the list of buckets.")
-      val list = client.listBuckets()
-      Log.debug("Bucket list successfully fetched.")
-
-      for (b in list) {
-        if (b.name() == bucketName) {
-          return S3BucketImpl(client, this, bucketName, region, b.creationDate().toOffsetDateTime())
-        }
-      }
-
-      throw BucketNotFoundException(bucketName)
-    } catch (e: MinioException) {
-      throw S34kException("Failed to fetch bucket list", e)
-    }
+    return getBucket(BucketGetParams(bucketName, region))
   }
 
   override fun getBucket(action: BucketGetParams.() -> Unit): S3Bucket {
@@ -131,12 +172,28 @@ class S3ClientImpl : S3Client {
       val list = client.listBuckets(params.toMinio())
       Log.debug("Bucket list successfully fetched.")
 
+      Log.debug("Looking for bucket {}", params.bucket)
       for (b in list) {
         if (b.name() == params.bucket) {
-          return S3BucketImpl(client, this, params.bucket!!, null, b.creationDate().toOffsetDateTime())
+          Log.debug("Bucket {} found", params.bucket)
+          val out =  S3BucketImpl(
+            client,
+            this,
+            params.bucket!!,
+            params.region,
+            b.creationDate().toOffsetDateTime()
+          )
+
+          if (params.callback != null) {
+            Log.debug("Executing action {} in getBucket", params.callback)
+            params.callback!!(out)
+          }
+
+          return out
         }
       }
 
+      Log.debug("Bucket {} not found", params.bucket)
       throw BucketNotFoundException(params.bucket!!)
     } catch (e: MinioException) {
       throw S34kException("Failed to fetch bucket list", e)
@@ -151,7 +208,7 @@ class S3ClientImpl : S3Client {
     try {
       Log.debug("Attempting to fetch the list of buckets.")
       val list = client.listBuckets()
-      Log.debug("Bucket list successfully fetched.")
+      Log.debug("Bucket list successfully fetched, got {} buckets.", list.size)
 
       return list.map { S3BucketImpl(client, this, it.name(), null, it.creationDate().toOffsetDateTime()) }
     } catch (e: MinioException) {
@@ -170,9 +227,16 @@ class S3ClientImpl : S3Client {
     try {
       Log.debug("Attempting to fetch the list of buckets.")
       val list = client.listBuckets(params.toMinio())
-      Log.debug("Bucket list successfully fetched.")
+      Log.debug("Bucket list successfully fetched, got {} buckets.", list.size)
 
-      return list.map { S3BucketImpl(client, this, it.name(), null, it.creationDate().toOffsetDateTime()) }
+      val out = list.map { S3BucketImpl(client, this, it.name(), null, it.creationDate().toOffsetDateTime()) }
+
+      params.callback?.let {
+        Log.debug("Executing action {} in listBuckets", it)
+        it.invoke(out)
+      }
+
+      return out
     } catch (e: MinioException) {
       throw S34kException("Failed to fetch bucket list", e)
     }

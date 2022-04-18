@@ -1,0 +1,18 @@
+= S3 For Kotlin - Minio
+
+image:https://img.shields.io/badge/jvm-1.8-blue[title="Compatible with JVM 1.8"]
+
+Minio implementation of the https://github.com/VEuPathDB/lib-s34k[S34k] API.
+
+.*Add to project*:
+[source, kotlin]
+----
+    implementation("org.veupathdb.lib.s3:s34k-minio:0.1.0")
+----
+
+
+TODO:
+
+* document adding to project
+* trace level logging of this library may print sensitive information like
+  headers, tags, and query params to the output logs.

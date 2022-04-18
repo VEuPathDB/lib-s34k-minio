@@ -4,7 +4,7 @@ import okhttp3.Headers
 import org.veupathdb.lib.s3.s34k.S3Headers
 import java.util.*
 
-class S3HeadersImpl(head: Headers) : S3Headers {
+internal class S3HeadersImpl(head: Headers) : S3Headers {
 
   private val raw: Map<String, List<String>>
 

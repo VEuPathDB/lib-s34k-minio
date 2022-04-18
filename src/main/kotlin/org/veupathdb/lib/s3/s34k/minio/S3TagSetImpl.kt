@@ -1,16 +1,13 @@
 package org.veupathdb.lib.s3.s34k.minio
 
 import io.minio.messages.Tags
+import okhttp3.internal.toImmutableMap
 import org.veupathdb.lib.s3.s34k.S3Tag
 import org.veupathdb.lib.s3.s34k.S3TagSet
 
-class S3TagSetImpl(raw: Tags) : S3TagSet {
+internal class S3TagSetImpl(private val raw: Map<String, String>) : S3TagSet {
 
-  private val raw: Map<String, String>
-
-  init {
-    this.raw = raw.get()
-  }
+  constructor(tags: Tags) : this(tags.get())
 
   override val isEmpty get() = raw.isEmpty()
 
@@ -30,7 +27,7 @@ class S3TagSetImpl(raw: Tags) : S3TagSet {
     return out
   }
 
-  override fun asMap(): Map<String, String> = raw
+  override fun asMap(): Map<String, String> = raw.toImmutableMap()
 
   override fun iterator(): Iterator<S3Tag> =
     raw.entries.stream()

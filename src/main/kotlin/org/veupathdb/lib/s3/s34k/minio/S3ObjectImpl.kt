@@ -6,10 +6,8 @@ import org.veupathdb.lib.s3.s34k.params.ExistsParams
 import org.veupathdb.lib.s3.s34k.params.StatParams
 import org.veupathdb.lib.s3.s34k.params.TagGetParams
 import org.veupathdb.lib.s3.s34k.params.TagPutParams
-import org.veupathdb.lib.s3.s34k.params.`object`.ObjectTagGetParams
-import org.veupathdb.lib.s3.s34k.params.`object`.ObjectTagPutParams
 
-open class S3ObjectImpl(
+internal open class S3ObjectImpl(
   bucket:  S3Bucket,
   region:  String?,
   headers: S3Headers,

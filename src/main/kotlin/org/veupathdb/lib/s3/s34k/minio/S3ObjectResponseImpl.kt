@@ -4,7 +4,7 @@ import org.veupathdb.lib.s3.s34k.S3Bucket
 import org.veupathdb.lib.s3.s34k.S3Headers
 import org.veupathdb.lib.s3.s34k.S3ObjectResponse
 
-sealed class S3ObjectResponseImpl(
+internal sealed class S3ObjectResponseImpl(
                      bucket:  S3Bucket,
                      region:  String?,
                      headers: S3Headers,

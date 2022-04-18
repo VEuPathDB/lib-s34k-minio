@@ -3,19 +3,22 @@
 package org.veupathdb.lib.s3.s34k.minio
 
 import io.minio.*
-import org.veupathdb.lib.s3.s34k.S3Bucket
-import org.veupathdb.lib.s3.s34k.S3Client
-import org.veupathdb.lib.s3.s34k.errors.InvalidRequestConfigException
 import org.veupathdb.lib.s3.s34k.params.AbstractRequestParams
-import org.veupathdb.lib.s3.s34k.params.bucket.BucketExistsParams
-import org.veupathdb.lib.s3.s34k.params.bucket.BucketGetParams
-import org.veupathdb.lib.s3.s34k.params.bucket.BucketListParams
-import org.veupathdb.lib.s3.s34k.params.bucket.BucketTagGetParams
+import org.veupathdb.lib.s3.s34k.params.bucket.*
 import org.veupathdb.lib.s3.s34k.params.`object`.*
 
-// region: Builder Assists
+// region Builder Assists
 
-internal inline fun <R: BaseArgs.Builder<R, B>, B: BaseArgs> AbstractRequestParams.addHTTPExtras(
+/**
+ * Appends the configured headers and query parameters to the target builder.
+ *
+ * @param R Builder type
+ *
+ * @param B Args container type.
+ *
+ * @param builder Builder instance.
+ */
+private inline fun <R: BaseArgs.Builder<R, B>, B: BaseArgs> AbstractRequestParams.addHTTPExtras(
   builder: BaseArgs.Builder<in R, out B>
 ) {
   headers.ifNotEmpty { builder.extraHeaders(it.toMultiMap()) }
@@ -23,19 +26,47 @@ internal inline fun <R: BaseArgs.Builder<R, B>, B: BaseArgs> AbstractRequestPara
 }
 
 
-internal inline fun <R: BucketArgs.Builder<R, B>, B: BucketArgs> AbstractRequestParams.addBucketParams(
-  bucket: String,
+/**
+ * Requires the bucket parameter is set, appends it, appends the region if set,
+ * then appends the configured headers and query parameters.
+ *
+ * @param R Builder type.
+ *
+ * @param B Args container type.
+ *
+ * @param bucket Name of the target bucket.
+ *
+ * @param region Optional region value for the request.
+ *
+ * @param builder Builder instance.
+ */
+private inline fun <R: BucketArgs.Builder<R, B>, B: BucketArgs> AbstractRequestParams.addBucketParams(
+  bucket: String?,
   region: String?,
-  builder: BucketArgs.Builder<in R, out BucketArgs>
+  builder: BucketArgs.Builder<R, out BucketArgs>
 ) {
-  builder.bucket(bucket)
+  builder.bucket(reqNonBlank("bucket", reqSet("bucket", bucket)))
   region.ifNotNull(builder::region)
   addHTTPExtras(builder)
 }
 
 
-internal inline fun <R: ObjectArgs.Builder<R, B>, B: ObjectArgs> SealedObjReqParams.addObjectParams(
-  bucket: String,
+/**
+ * Requires the bucket and object parameters to be set, appends them, appends
+ * the region if set, then appends the configured headers and query parameters.
+ *
+ * @param R Builder type.
+ *
+ * @param B Args container type.
+ *
+ * @param bucket Name of the target bucket.
+ *
+ * @param region Optional region value.
+ *
+ * @param builder Builder instance.
+ */
+private inline fun <R: ObjectArgs.Builder<R, B>, B: ObjectArgs> SealedObjReqParams.addObjectParams(
+  bucket: String?,
   region: String?,
   builder: ObjectArgs.Builder<in R, out B>
 ) {
@@ -45,8 +76,7 @@ internal inline fun <R: ObjectArgs.Builder<R, B>, B: ObjectArgs> SealedObjReqPar
 
 // endregion
 
-
-// region: Bucket Params
+// region Bucket Params
 
 internal inline fun BucketExistsParams.toMinio() =
   BucketExistsArgs.builder().also { addBucketParams(reqBucket(), region, it) }.build()
@@ -59,46 +89,89 @@ internal inline fun BucketListParams.toMinio() =
 internal inline fun BucketGetParams.toMinio() =
   ListBucketsArgs.builder().also { addHTTPExtras(it) }.build()
 
+internal inline fun BucketPutParams.toMinio() =
+  MakeBucketArgs.builder().also {
+    addBucketParams(bucket, region, it)
+  }.build()
 
-context(S3Bucket)
-internal inline fun BucketTagGetParams.toMinio() =
+
+internal inline fun BucketTagGetParams.toMinio(name: String, region: String?) =
   GetBucketTagsArgs.builder().also { addBucketParams(name, region, it) }.build()
+
+
+internal inline fun BucketTagPutParams.toMinio(name: String, region: String?) =
+  SetBucketTagsArgs.builder().also {
+    addBucketParams(name, region, it)
+    it.tags(getTagsMap())
+  }.build()
 
 // endregion
 
 
-// region: Object Params
+// region Object Params
 
-context(S3Bucket)
-internal inline fun ObjectDownloadParams.toMinio() =
-  GetObjectArgs.builder().also { addObjectParams(name, region, it) }.build()
+internal inline fun DirectoryPutParams.toMinio(bucket: String, region: String?) =
+  PutObjectArgs.builder().also {
+    var path = reqPath()
+    if (!path.endsWith('/'))
+      path = "$path/"
+
+    it.`object`(path)
+    it.bucket(bucket)
+    region.ifSet(it::region)
+    it.stream(ByteArray(0).inputStream(), 0, -1)
+    it.extraHeaders(headers.toMultiMap())
+    it.extraQueryParams(queryParams.toMultiMap())
+    it.tags(getTagsMap())
+  }.build()
+
+internal inline fun ObjectDownloadParams.toMinio(bucket: String, region: String?) =
+  GetObjectArgs.builder().also { addObjectParams(bucket, region, it) }.build()
 
 
-context(S3Bucket)
-internal inline fun ObjectExistsParams.toMinio() =
-  StatObjectArgs.builder().also { addObjectParams(name, region, it) }.build()
+internal inline fun ObjectExistsParams.toMinio(bucket: String, region: String?) =
+  StatObjectArgs.builder().also { addObjectParams(bucket, region, it) }.build()
 
 
-context(S3Bucket)
-internal inline fun ObjectFilePutParams.toMinio() =
+internal inline fun ObjectFilePutParams.toMinio(bucket: String, region: String?) =
   UploadObjectArgs.builder().also {
     it.filename(localFile.reqLFExists(this).absolutePath, partSize)
-    addObjectParams(name, region, it)
-  }
+    it.tags(getTagsMap())
+    addObjectParams(bucket, region, it)
+  }.build()
 
 
-context(S3Bucket)
-internal inline fun ObjectGetParams.toMinio() =
-  GetObjectArgs.builder().also { addObjectParams(name, region, it) }.build()
+internal inline fun ObjectTouchParams.toMinio(bucket: String, region: String?) =
+  PutObjectArgs.builder().also {
+    addBucketParams(bucket, region, it)
+    it.stream(ByteArray(0).inputStream(), 0, -1)
+    it.tags(getTagsMap())
+  }.build()
 
 
-context(S3Bucket)
-internal inline fun ObjectTagGetParams.toMinio() =
-  GetObjectTagsArgs.builder().also { addObjectParams(name, region, it) }.build()
+internal inline fun ObjectGetParams.toMinio(bucket: String, region: String?) =
+  GetObjectArgs.builder().also { addObjectParams(bucket, region, it) }.build()
 
 
-context(S3Bucket)
-internal inline fun ObjectStatParams.toMinio(bucket: String, region: String) =
-  StatObjectArgs.builder().also { addObjectParams(name, region, it) }.build()
+internal inline fun ObjectPutParams.toMinio(bucket: String, region: String?) =
+  PutObjectArgs.builder().also {
+    addBucketParams(bucket, region, it)
+    it.stream(stream, -1, partSize)
+    it.tags(getTagsMap())
+  }.build()
+
+
+internal inline fun ObjectTagGetParams.toMinio(bucket: String, region: String?) =
+  GetObjectTagsArgs.builder().also { addObjectParams(bucket, region, it) }.build()
+
+internal inline fun ObjectTagPutParams.toMinio(bucket: String, region: String?) =
+  SetObjectTagsArgs.builder().also {
+    addObjectParams(bucket, region, it)
+    it.tags(getTagsMap())
+  }.build()
+
+
+internal inline fun ObjectStatParams.toMinio(bucket: String, region: String?) =
+  StatObjectArgs.builder().also { addObjectParams(bucket, region, it) }.build()
 
 // endregion

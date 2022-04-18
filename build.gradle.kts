@@ -30,7 +30,5 @@ tasks.test {
 tasks.withType<KotlinCompile>().all {
   kotlinOptions {
     jvmTarget = "1.8"
-
-    freeCompilerArgs = listOf("-Xcontext-receivers")
   }
 }

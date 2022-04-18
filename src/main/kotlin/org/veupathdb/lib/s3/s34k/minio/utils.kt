@@ -4,6 +4,9 @@ package org.veupathdb.lib.s3.s34k.minio
 
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
+import io.minio.BucketArgs
+import org.veupathdb.lib.s3.s34k.errors.InvalidRequestConfigException
+import org.veupathdb.lib.s3.s34k.params.AbstractRequestParams
 
 
 internal inline fun Map<String, Array<String>>.toMultiMap(): Multimap<String, String> {
@@ -14,13 +17,12 @@ internal inline fun Map<String, Array<String>>.toMultiMap(): Multimap<String, St
   return out
 }
 
-internal inline fun <R> String.ifNotBlank(fn: (String) -> R) {
-  if (isNotBlank()) fn(this)
-}
-
 internal inline fun <K, V, R> Map<K, V>.ifNotEmpty(fn: (Map<K, V>) -> R) {
   if (isNotEmpty()) fn(this)
 }
 
-internal inline fun Map<String, Array<String>>.merge(action: (String, Collection<String>) -> Unit) =
-  forEach { (k, v) -> action(k, v.asList()) }
+
+internal inline fun <R> String?.ifSet(fn: (String) -> R) {
+  if (this != null && this.isNotBlank())
+    fn(this)
+}
