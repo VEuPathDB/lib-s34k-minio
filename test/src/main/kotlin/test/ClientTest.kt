@@ -11,10 +11,15 @@ class ClientTest(val client: S3Client) {
 
   fun run() {
     bucketExistsNoBuckets()
-    listBucketsWithNoBuckets()
-    testBucketCreation()
     testBucketExistsWithBucket()
+
     testBucketCreateWithConflict()
+    testBucketCreateWithNoConflict()
+
+    listBucketsWithNoBuckets()
+
+    testCreateIfNotExistsWithConflict()
+    testCreateIfNotExistsWithNoConflict()
   }
 
   private fun bucketExistsNoBuckets() {
@@ -26,7 +31,7 @@ class ClientTest(val client: S3Client) {
       assertNoBuckets()
 
       if (client.bucketExists(name)) {
-        Log.error("Failed! S3Client.bucketExists returned true when false was expected.")
+        Log.error("Failed! Bucket should not exist, but it does.")
         return
       }
     } catch (e: Throwable) {
@@ -42,7 +47,7 @@ class ClientTest(val client: S3Client) {
 
     try {
       if (client.listBuckets().isNotEmpty()) {
-        Log.error("Failed! S3Client.listBuckets returned a non-zero number of buckets when zero buckets were expected.")
+        Log.error("Failed!  Store contains a non-zero number of buckets when zero buckets were expected.")
         return
       }
     } catch (e: Throwable) {
@@ -53,7 +58,7 @@ class ClientTest(val client: S3Client) {
     Log.info("Success!")
   }
 
-  private fun testBucketCreation() {
+  private fun testBucketCreateWithNoConflict() {
     Log.info("Testing bucket creation.")
 
     val name = BucketName("foo")
@@ -86,9 +91,11 @@ class ClientTest(val client: S3Client) {
       Log.debug("Creating bucket.")
       client.createBucket(name)
 
-      assertBucketExists(name)
-
-      Log.info("Success!")
+      if (!client.bucketExists(name)) {
+        Log.error("Failed!  Expected bucket to exist but it did not.")
+      } else {
+        Log.info("Success!")
+      }
     } catch (e: Throwable) {
       Log.error("Failed with exception!", e)
       throw e
@@ -111,7 +118,7 @@ class ClientTest(val client: S3Client) {
       Log.debug("Attempting to create bucket 2.")
       client.createBucket(name)
 
-      Log.error("Failed!  S3Client.createBucket did not throw BucketAlreadyExistsException.")
+      Log.error("Failed!  Expected BucketAlreadyExistsException to be thrown but it was not.")
     } catch (e: BucketAlreadyExistsException) {
       Log.info("Success!")
     } catch (e: Throwable) {
@@ -125,18 +132,22 @@ class ClientTest(val client: S3Client) {
   private fun testCreateIfNotExistsWithConflict() {
     Log.info("Testing bucket upsert with a name conflict.")
 
-    assertNoBuckets()
-
     val name = BucketName("goodbye")
 
     try {
+      assertNoBuckets()
+
       Log.debug("Creating bucket 1.")
       client.createBucket(name)
 
       Log.debug("Attempting to create bucket 2.")
       client.createBucketIfNotExists(name)
 
-      Log.info("Success!")
+      if (client.listBuckets().size != 1) {
+        Log.error("Failed!  Expected store to contain exactly one bucket but it did not.")
+      } else {
+        Log.info("Success!")
+      }
     } catch (e: Throwable) {
       Log.error("Failed with exception!", e)
       throw e
@@ -150,33 +161,29 @@ class ClientTest(val client: S3Client) {
 
     val name = BucketName("nope")
 
-    Log.debug("Assert bucket does not exist.")
-    if (client.listBuckets().isNotEmpty()) {
-      Log.error("Test precondition failed, bucket list is not empty.")
-      return cleanup(name)
+    try {
+      assertNoBuckets()
+
+      Log.debug("Upsert new bucket.")
+      client.createBucketIfNotExists(name)
+
+      assertBucketExists(name)
+    } catch (e: Throwable) {
+      Log.error("Failed with exception!", e)
+      throw e
+    } finally {
+      cleanup(name)
     }
-
-    Log.debug("Upsert new bucket.")
-    client.createBucketIfNotExists(name)
-
-    Log.debug("Assert new bucket exists")
-    if (!client.bucketExists(name)) {
-      Log.error("Failed!")
-      return cleanup(name)
-    }
-
-    Log.info("Success!")
-    cleanup(name)
   }
 
-  // test tag bucket
-  // test remove bucket tags
   // test delete bucket
   // test create bucket with no conflict
   // test createIfNotExists with no conflict
   // test getBucket with no bucket
   // test getBucket with bucket
   // test listBuckets with a bucket
+  // test tag bucket
+  // test remove bucket tags
 
   private fun assertBucketExists(name: BucketName) {
     Log.debug("Ensuring bucket $name exists.")
