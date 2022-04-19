@@ -17,7 +17,7 @@ internal class S3ApiTest {
     @Test
     @DisplayName("Locates the S3ClientProvideImpl class.")
     fun t1() {
-      val conf   = S3Config("foo", "bar", "fizz", "buzz")
+      val conf   = S3Config("foo", "bar", "fizz", false, "buzz")
       val client = assertDoesNotThrow {
         S3Api.newClient(conf)
       }

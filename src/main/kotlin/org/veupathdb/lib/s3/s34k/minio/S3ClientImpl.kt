@@ -9,6 +9,7 @@ import org.veupathdb.lib.s3.s34k.S3Client
 import org.veupathdb.lib.s3.s34k.S3Config
 import org.veupathdb.lib.s3.s34k.S3ErrorCode
 import org.veupathdb.lib.s3.s34k.errors.BucketAlreadyExistsException
+import org.veupathdb.lib.s3.s34k.errors.BucketNotEmptyException
 import org.veupathdb.lib.s3.s34k.errors.BucketNotFoundException
 import org.veupathdb.lib.s3.s34k.errors.S34kException
 import org.veupathdb.lib.s3.s34k.params.bucket.*
@@ -19,6 +20,8 @@ internal class S3ClientImpl(config: S3Config) : S3Client {
 
   private val client: MinioClient
 
+  private val defaultRegion: String?
+
   init {
     Log.trace("::init(config = {})", config)
 
@@ -27,13 +30,15 @@ internal class S3ClientImpl(config: S3Config) : S3Client {
       .endpoint(config.url, 80, config.secure)
       .credentials(config.accessKey, config.secretKey)
       .build()
+
+    defaultRegion = config.region
   }
 
   // region: Bucket Exists
 
-  override fun bucketExists(bucketName: String, region: String?): Boolean {
-    Log.trace("bucketExists(bucketName = {}, region = {})", bucketName, region)
-    return bucketExists(BucketExistsParams(bucketName, region))
+  override fun bucketExists(name: BucketName, region: String?): Boolean {
+    Log.trace("bucketExists(name = {}, region = {})", name, region ?: defaultRegion)
+    return bucketExists(BucketExistsParams(null, region).also { it.bucket = name })
   }
 
 
@@ -48,6 +53,10 @@ internal class S3ClientImpl(config: S3Config) : S3Client {
 
     try {
       Log.debug("Attempting to check for the existence of bucket {}", params.bucket)
+
+      if (params.region == null)
+        params.region = defaultRegion
+
       val out = client.bucketExists(params.toMinio())
       Log.debug("Successfully checked for the existence of bucket {}, result: {}", params.bucket, out)
 
@@ -68,9 +77,9 @@ internal class S3ClientImpl(config: S3Config) : S3Client {
 
   // region: Create Bucket
 
-  override fun createBucket(bucketName: String, region: String?): S3Bucket {
-    Log.trace("createBucket(bucketName = {}, region = {})", bucketName, region)
-    return createBucket(BucketPutParams(bucketName, region))
+  override fun createBucket(name: BucketName, region: String?): S3Bucket {
+    Log.trace("createBucket(name = {}, region = {})", name, region ?: defaultRegion)
+    return createBucket(BucketPutParams(null, region).also { it.bucket = name })
   }
 
   override fun createBucket(action: BucketPutParams.() -> Unit): S3Bucket {
@@ -83,6 +92,10 @@ internal class S3ClientImpl(config: S3Config) : S3Client {
 
     try {
       Log.debug("Attempting to create bucket {}", params.bucket)
+
+      if (params.region == null)
+        params.region = defaultRegion
+
       client.makeBucket(params.toMinio())
       Log.debug("Successfully created bucket {}", params.bucket)
 
@@ -110,9 +123,9 @@ internal class S3ClientImpl(config: S3Config) : S3Client {
 
   // region: Create Bucket if Not Exists
 
-  override fun createBucketIfNotExists(bucketName: String, region: String?): S3Bucket {
-    Log.trace("createBucketIfNotExists(bucketName = {}, region = {})", bucketName, region)
-    return createBucketIfNotExists(BucketPutParams(bucketName, region))
+  override fun createBucketIfNotExists(name: BucketName, region: String?): S3Bucket {
+    Log.trace("createBucketIfNotExists(name = {}, region = {})", name, region ?: defaultRegion)
+    return createBucketIfNotExists(BucketPutParams(null, region).also { it.bucket = name })
   }
 
   override fun createBucketIfNotExists(action: BucketPutParams.() -> Unit): S3Bucket {
@@ -125,6 +138,10 @@ internal class S3ClientImpl(config: S3Config) : S3Client {
 
     try {
       Log.debug("Attempting to create bucket {} with exists error catch", params.bucket)
+
+      if (params.region == null)
+        params.region = defaultRegion
+
       client.makeBucket(params.toMinio())
       Log.debug("Successfully created bucket {} with exists error catch", params.bucket)
 
@@ -151,9 +168,9 @@ internal class S3ClientImpl(config: S3Config) : S3Client {
 
   // region: Get Bucket
 
-  override fun getBucket(bucketName: String, region: String?): S3Bucket {
-    Log.trace("getBucket(bucketName = {}, region = {})", bucketName, region)
-    return getBucket(BucketGetParams(bucketName, region))
+  override fun getBucket(name: BucketName, region: String?): S3Bucket {
+    Log.trace("getBucket(name = {}, region = {})", name, region ?: defaultRegion)
+    return getBucket(BucketGetParams(null, region).also { it.bucket = name })
   }
 
   override fun getBucket(action: BucketGetParams.() -> Unit): S3Bucket {
@@ -166,6 +183,10 @@ internal class S3ClientImpl(config: S3Config) : S3Client {
 
     try {
       Log.debug("Attempting to fetch the list of buckets.")
+
+      if (params.region == null)
+        params.region = defaultRegion
+
       val list = client.listBuckets(params.toMinio())
       Log.debug("Bucket list successfully fetched.")
 
@@ -231,6 +252,10 @@ internal class S3ClientImpl(config: S3Config) : S3Client {
 
     try {
       Log.debug("Attempting to fetch the list of buckets.")
+
+      if (params.region == null)
+        params.region = defaultRegion
+
       val list = client.listBuckets(params.toMinio())
       Log.debug("Bucket list successfully fetched, got {} buckets.", list.size)
 
@@ -251,6 +276,41 @@ internal class S3ClientImpl(config: S3Config) : S3Client {
       return out
     } catch (e: MinioException) {
       throw S34kException("Failed to fetch bucket list", e)
+    }
+  }
+
+
+  override fun deleteBucket(name: BucketName, region: String?) {
+    Log.trace("deleteBucket(name = {}, region = {})", name, region)
+    return deleteBucket(BucketDeleteParams(null, region ?: defaultRegion).also { it.bucket = name })
+  }
+
+  override fun deleteBucket(action: BucketDeleteParams.() -> Unit) {
+    Log.trace("deleteBucket(action = {})", action)
+    return deleteBucket(BucketDeleteParams().also(action))
+  }
+
+  override fun deleteBucket(params: BucketDeleteParams) {
+    Log.trace("deleteBucket(params = {})", params)
+
+    try {
+      Log.debug("Attempting to delete bucket ${params.bucket}")
+      if (params.region == null) {
+        params.region = defaultRegion
+      }
+      client.removeBucket(params.toMinio())
+      Log.debug("Successfully deleted bucket ${params.bucket}")
+    } catch (e: MinioException) {
+      Log.debug("Failed to delete bucket ${params.bucket}")
+
+      if (e is ErrorResponseException) {
+        when (e.errorResponse().code()) {
+          S3ErrorCode.NoSuchBucket   -> throw BucketNotFoundException(params.bucket!!, e)
+          S3ErrorCode.BucketNotEmpty -> throw BucketNotEmptyException(params.bucket!!, e)
+        }
+      }
+
+      throw S34kException("Failed to delete bucket ${params.bucket}", e)
     }
   }
 }

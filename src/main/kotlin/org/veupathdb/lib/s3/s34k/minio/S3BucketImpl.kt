@@ -5,6 +5,7 @@ import io.minio.errors.ErrorResponseException
 import io.minio.errors.MinioException
 import org.slf4j.LoggerFactory
 import org.veupathdb.lib.s3.s34k.*
+import org.veupathdb.lib.s3.s34k.params.DeleteParams
 import org.veupathdb.lib.s3.s34k.params.bucket.BucketName
 import org.veupathdb.lib.s3.s34k.params.bucket.BucketTagGetParams
 import org.veupathdb.lib.s3.s34k.params.bucket.BucketTagPutParams
@@ -499,6 +500,25 @@ internal class S3BucketImpl(
       e.throwCorrect(name, params.path!!) { "Failed to assign tags to object ${params.path} in bucket $name" }
       throw IllegalStateException()
     }
+  }
+
+  // endregion
+
+  // region Delete
+
+  override fun delete() {
+    Log.trace("delete()")
+    client.deleteBucket(name, region)
+  }
+
+  override fun delete(action: DeleteParams.() -> Unit) {
+    Log.trace("delete(action = {})", action)
+    delete(DeleteParams().also(action))
+  }
+
+  override fun delete(params: DeleteParams) {
+    Log.trace("delete(params = {})", params)
+    client.deleteBucket(params.toBucketDeleteParams(name, region))
   }
 
   // endregion

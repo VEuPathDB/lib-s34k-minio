@@ -104,6 +104,9 @@ internal inline fun BucketTagPutParams.toMinio(name: BucketName, region: String?
     it.tags(getTagsMap())
   }.build()
 
+internal inline fun BucketDeleteParams.toMinio() =
+  RemoveBucketArgs.builder().also { addBucketParams(bucket, region, it) }.build()
+
 // endregion
 
 
