@@ -24,7 +24,7 @@ internal class S3ClientImpl(config: S3Config) : S3Client {
 
     client = MinioClient.builder()
       .region(config.region)
-      .endpoint(config.url)
+      .endpoint(config.url, 80, config.secure)
       .credentials(config.accessKey, config.secretKey)
       .build()
   }

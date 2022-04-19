@@ -27,6 +27,8 @@ dependencies {
 
   implementation("org.veupathdb.lib.s3:s34k-minio:0.1.0-SNAPSHOT") { isChanging = true }
 
+  implementation("org.apache.logging.log4j:log4j-slf4j18-impl:2.17.2")
+
   testImplementation(kotlin("test"))
 }
 

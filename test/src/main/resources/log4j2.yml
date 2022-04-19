@@ -1,0 +1,14 @@
+Configuration:
+  status: warn
+  name: EndToEndTest
+  appenders:
+    Console:
+      name: STDOUT
+      target: SYSTEM_OUT
+      pattern: "%d %p $C{1.} [%t] %m%n"
+  Loggers:
+    name: org.veupathdb.lib.s3.s34k
+    level: trace
+    additivity: false
+    AppenderRef:
+      ref: STDOUT

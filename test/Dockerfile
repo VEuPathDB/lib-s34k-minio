@@ -2,15 +2,18 @@ FROM alpine:3.15.4
 
 ARG GITHUB_USERNAME
 ARG GITHUB_TOKEN
+ARG GRADLE_VERSION="7.4.2"
 
-RUN apk add --no-cache openjdk17-jdk
+RUN apk -U add --no-cache openjdk17-jdk
 
-COPY ["settings.gradle.kts", "build.gradle.kts", "gradlew", "./"]
+ENV PATH "$PATH:/gradle-${GRADLE_VERSION}/bin/"
+
+COPY ["settings.gradle.kts", "build.gradle.kts", "gradlew", "startup.sh", "./"]
 COPY gradle gradle/
 COPY src src/
 
 RUN ./gradlew shadowJar
 
-CMD java -jar build/libs/service.jar
+CMD ./startup.sh
 
 
