@@ -13,20 +13,9 @@ fun main() {
 
   val client = S3Api.newClient(S3Config("http://minio", System.getenv("ACCESS_KEY"), System.getenv("ACCESS_TOKEN"), false, null))
 
+  ClientTest(client).run()
+
   client.testEmptyBucketList()
-
-  val bucket = client.testBucketCreation("foo")
-
-
-  Log.info("Testing bucket tagging")
-  bucket.putBucketTags {
-    addTag("test", "foo")
-  }
-  val bucketTags = bucket.getBucketTags()
-  require(bucketTags.size == 1)
-  require(bucketTags.asList()[0].key == "test")
-  require(bucketTags.asList()[0].value == "foo")
-  Log.info("Success")
 
   // delete bucket tags
   // put directory
@@ -40,13 +29,6 @@ fun main() {
 
 }
 
-private fun S3Client.testBucketCreation(name: String): S3Bucket {
-  Log.info("Testing bucket creation")
-  val bucket = createBucket(name)
-  require(bucketExists(name))
-  Log.info("Success")
-  return bucket
-}
 
 /**
  * Retrieves the bucket list and requires that it is empty.
