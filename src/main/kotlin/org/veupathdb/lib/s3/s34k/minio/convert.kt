@@ -7,4 +7,4 @@ import org.veupathdb.lib.s3.s34k.params.bucket.BucketPutParams
 
 
 internal inline fun BucketPutParams.toGetParams() =
-  BucketGetParams(bucket, region, callback)
+  BucketGetParams(bucket?.name, region, callback)

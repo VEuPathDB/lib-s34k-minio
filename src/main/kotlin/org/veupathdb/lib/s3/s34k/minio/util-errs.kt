@@ -6,8 +6,9 @@ import org.veupathdb.lib.s3.s34k.S3ErrorCode
 import org.veupathdb.lib.s3.s34k.errors.BucketNotFoundException
 import org.veupathdb.lib.s3.s34k.errors.ObjectNotFoundException
 import org.veupathdb.lib.s3.s34k.errors.S34kException
+import org.veupathdb.lib.s3.s34k.params.bucket.BucketName
 
-internal inline fun MinioException.throwCorrect(bucket: String, path: String, msg: () -> String) {
+internal inline fun MinioException.throwCorrect(bucket: BucketName, path: String, msg: () -> String) {
   if (this is ErrorResponseException) {
     when (errorResponse().code()) {
       S3ErrorCode.NoSuchBucket -> throw BucketNotFoundException(bucket, this)
@@ -18,7 +19,7 @@ internal inline fun MinioException.throwCorrect(bucket: String, path: String, ms
   throw S34kException(msg(), this)
 }
 
-internal inline fun MinioException.throwCorrect(bucket: String, msg: () -> String) {
+internal inline fun MinioException.throwCorrect(bucket: BucketName, msg: () -> String) {
   if (this is ErrorResponseException && errorResponse().code() == S3ErrorCode.NoSuchBucket)
     throw BucketNotFoundException(bucket, this)
 
