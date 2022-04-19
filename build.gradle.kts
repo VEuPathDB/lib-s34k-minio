@@ -21,6 +21,15 @@ java {
 repositories {
   mavenCentral()
   mavenLocal()
+
+  maven {
+    name = "GitHubPackages"
+    url  = uri("https://maven.pkg.github.com/veupathdb/packages")
+    credentials {
+      username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_USERNAME")
+      password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+    }
+  }
 }
 
 dependencies {
@@ -60,7 +69,7 @@ publishing {
   repositories {
     maven {
       name = "GitHub"
-      url = uri("https://maven.pkg.github.com/VEuPathDB/lib-s34k")
+      url = uri("https://maven.pkg.github.com/VEuPathDB/lib-s34k-minio")
       credentials {
         username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
         password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
@@ -74,7 +83,7 @@ publishing {
       pom {
         name.set("Generalized S3 API")
         description.set("Provides a standard API for S3 operations which may be backed by varying implementations.")
-        url.set("https://github.com/VEuPathDB/lib-s34k")
+        url.set("https://github.com/VEuPathDB/lib-s34k-minio")
         developers {
           developer {
             id.set("epharper")
@@ -85,9 +94,9 @@ publishing {
           }
         }
         scm {
-          connection.set("scm:git:git://github.com/VEuPathDB/lib-s34k.git")
-          developerConnection.set("scm:git:ssh://github.com/VEuPathDB/lib-s34k.git")
-          url.set("https://github.com/VEuPathDB/lib-s34k")
+          connection.set("scm:git:git://github.com/VEuPathDB/lib-s34k-minio.git")
+          developerConnection.set("scm:git:ssh://github.com/VEuPathDB/lib-s34k-minio.git")
+          url.set("https://github.com/VEuPathDB/lib-s34k-minio")
         }
       }
     }

@@ -59,7 +59,7 @@ internal class S3BucketImpl(
       Log.debug("Successfully got object {} from bucket {}.", params.path, name)
 
       // Write the S3 object result to the output file.
-      params.localFile!!.outputStream().buffered().use { res.transferTo(it) }
+      params.localFile!!.outputStream().buffered().use { res.copyTo(it) }
 
       val out = S3FileObjectImpl(this, null, S3HeadersImpl(res.headers()), params.path!!, params.localFile!!)
 
@@ -78,7 +78,7 @@ internal class S3BucketImpl(
         params.localFile!!.delete()
 
       if (e is MinioException) {
-        e.throwCorrect(name.name, params.path!!) {
+        e.throwCorrect(name, params.path!!) {
           "Object download failed for object ${params.path} in bucket $name"
         }
       }
@@ -117,7 +117,7 @@ internal class S3BucketImpl(
       return out
     } catch (e: MinioException) {
       Log.debug("Failed to fetch tags for bucket {}", name)
-      e.throwCorrect(name.name) { "Failed to get bucket tags for bucket $name." }
+      e.throwCorrect(name) { "Failed to get bucket tags for bucket $name." }
       throw IllegalStateException()
     }
   }
@@ -154,7 +154,7 @@ internal class S3BucketImpl(
       return out
     } catch (e: MinioException) {
       Log.debug("Failed to get object {} from bucket {}.", params.path, name)
-      e.throwCorrect(name.name, params.path!!) { "Failed to get object ${params.path} from bucket $name." }
+      e.throwCorrect(name, params.path!!) { "Failed to get object ${params.path} from bucket $name." }
       throw IllegalStateException()
     }
   }
@@ -191,7 +191,7 @@ internal class S3BucketImpl(
       return out
     } catch (e: MinioException) {
       Log.debug("Failed to fetch object tags for {} in bucket {}", params.path, name)
-      e.throwCorrect(name.name, params.path!!) { "Failed to get object tags for ${params.path} from bucket $name." }
+      e.throwCorrect(name, params.path!!) { "Failed to get object tags for ${params.path} from bucket $name." }
       throw IllegalStateException()
     }
   }
@@ -225,7 +225,7 @@ internal class S3BucketImpl(
       }
 
       Log.debug("Failed to test for object {} existence in bucket {}.", params.path, name)
-      e.throwCorrect(name.name, params.path!!) { "Failed to check for object ${params.path} existence in bucket $name." }
+      e.throwCorrect(name, params.path!!) { "Failed to check for object ${params.path} existence in bucket $name." }
       throw IllegalStateException()
     }
   }
@@ -262,7 +262,7 @@ internal class S3BucketImpl(
       return out
     } catch (e: MinioException) {
       Log.debug("Stat for object {} in bucket {} failed.", params.path, name)
-      e.throwCorrect(name.name, params.path!!) { "Failed to stat object ${params.path} in bucket $name" }
+      e.throwCorrect(name, params.path!!) { "Failed to stat object ${params.path} in bucket $name" }
       throw IllegalStateException()
     }
   }
@@ -299,7 +299,7 @@ internal class S3BucketImpl(
       return out
     } catch (e: MinioException) {
       Log.debug("Failed to put directory {} into bucket {}", params.path, name)
-      e.throwCorrect(name.name, params.path!!) { "Failed to put directory {} into bucket {}" }
+      e.throwCorrect(name, params.path!!) { "Failed to put directory {} into bucket {}" }
       throw IllegalStateException()
     }
   }
@@ -336,7 +336,7 @@ internal class S3BucketImpl(
       return out
     } catch (e: MinioException) {
       Log.debug("Failed to upload file {} into bucket {} at path {}", params.localFile, name, params.path)
-      e.throwCorrect(name.name, params.path!!) {
+      e.throwCorrect(name, params.path!!) {
         "Failed to upload file ${params.localFile} into bucket $name at path ${params.path}"
       }
       throw IllegalStateException()
@@ -375,7 +375,7 @@ internal class S3BucketImpl(
       return out
     } catch (e: MinioException) {
       Log.debug("Failed to put object {} into bucket {}", params.path, name)
-      e.throwCorrect(name.name, params.path!!) { "Failed to put object ${params.path} into bucket $name" }
+      e.throwCorrect(name, params.path!!) { "Failed to put object ${params.path} into bucket $name" }
       throw IllegalStateException()
     }
   }
@@ -412,7 +412,7 @@ internal class S3BucketImpl(
       return out
     } catch (e: MinioException) {
       Log.debug("Failed to put empty object {} into bucket {}", params.path, name)
-      e.throwCorrect(name.name, params.path!!) { "Failed to put empty object ${params.path} into bucket $name" }
+      e.throwCorrect(name, params.path!!) { "Failed to put empty object ${params.path} into bucket $name" }
       throw IllegalStateException()
     }
   }
@@ -450,7 +450,7 @@ internal class S3BucketImpl(
       }
     } catch (e: MinioException) {
       Log.debug("Failed to attach tags to bucket {}", name)
-      e.throwCorrect(name.name) { "Failed to attach tags to bucket $name" }
+      e.throwCorrect(name) { "Failed to attach tags to bucket $name" }
       throw IllegalStateException()
     }
   }
@@ -496,7 +496,7 @@ internal class S3BucketImpl(
       }
     } catch (e: MinioException) {
       Log.debug("Failed to assign tags to object {} in bucket {}", params.path, name)
-      e.throwCorrect(name.name, params.path!!) { "Failed to assign tags to object ${params.path} in bucket $name" }
+      e.throwCorrect(name, params.path!!) { "Failed to assign tags to object ${params.path} in bucket $name" }
       throw IllegalStateException()
     }
   }
