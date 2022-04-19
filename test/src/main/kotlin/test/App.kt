@@ -1,11 +1,59 @@
 package test
 
+import org.slf4j.LoggerFactory
 import org.veupathdb.lib.s3.s34k.S3Api
+import org.veupathdb.lib.s3.s34k.S3Bucket
+import org.veupathdb.lib.s3.s34k.S3Client
 import org.veupathdb.lib.s3.s34k.S3Config
 
-fun main() {
-  val client = S3Api.newClient(S3Config("minio", System.getenv("ACCESS_KEY"), System.getenv("ACCESS_TOKEN"), null))
+private val Log = LoggerFactory.getLogger("hello")
 
-  val bucketList = client.listBuckets()
+fun main() {
+  Log.trace("main()")
+
+  val client = S3Api.newClient(S3Config("http://minio", System.getenv("ACCESS_KEY"), System.getenv("ACCESS_TOKEN"), false, null))
+
+  client.testEmptyBucketList()
+
+  val bucket = client.testBucketCreation("foo")
+
+
+  Log.info("Testing bucket tagging")
+  bucket.putBucketTags {
+    addTag("test", "foo")
+  }
+  val bucketTags = bucket.getBucketTags()
+  require(bucketTags.size == 1)
+  require(bucketTags.asList()[0].key == "test")
+  require(bucketTags.asList()[0].value == "foo")
+  Log.info("Success")
+
+  // delete bucket tags
+  // put directory
+  // delete empty directory
+  // delete full directory
+  // put object with input stream
+  // put object tags
+  // delete object tags
+  // delete object
+  //
+
+}
+
+private fun S3Client.testBucketCreation(name: String): S3Bucket {
+  Log.info("Testing bucket creation")
+  val bucket = createBucket(name)
+  require(bucketExists(name))
+  Log.info("Success")
+  return bucket
+}
+
+/**
+ * Retrieves the bucket list and requires that it is empty.
+ */
+private fun S3Client.testEmptyBucketList() {
+  Log.info("Testing that the bucket list is empty")
+  require(listBuckets().isEmpty())
+  Log.info("Success!")
 }
 

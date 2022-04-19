@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn" name="EndToEnd">
+
+    <Appenders>
+        <Console name="STDOUT">
+            <PatternLayout pattern="%d{ISO8601} %highlight{[%p{lengh=5}]} [%t] %c %m%n" />
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Root level="trace">
+            <AppenderRef ref="STDOUT" />
+        </Root>
+
+        <Logger name="org.veupathdb.lib.s3.s34k" level="trace" additivity="false">
+            <AppenderRef ref="STDOUT" />
+        </Logger>
+    </Loggers>
+</Configuration>
