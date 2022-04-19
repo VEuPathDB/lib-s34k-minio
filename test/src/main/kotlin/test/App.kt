@@ -6,7 +6,7 @@ import org.veupathdb.lib.s3.s34k.S3Bucket
 import org.veupathdb.lib.s3.s34k.S3Client
 import org.veupathdb.lib.s3.s34k.S3Config
 
-private val Log = LoggerFactory.getLogger("hello")
+private val Log = LoggerFactory.getLogger("AppKt")
 
 fun main() {
   Log.trace("main()")
@@ -14,8 +14,6 @@ fun main() {
   val client = S3Api.newClient(S3Config("http://minio", System.getenv("ACCESS_KEY"), System.getenv("ACCESS_TOKEN"), false, null))
 
   ClientTest(client).run()
-
-  client.testEmptyBucketList()
 
   // delete bucket tags
   // put directory
@@ -28,14 +26,3 @@ fun main() {
   //
 
 }
-
-
-/**
- * Retrieves the bucket list and requires that it is empty.
- */
-private fun S3Client.testEmptyBucketList() {
-  Log.info("Testing that the bucket list is empty")
-  require(listBuckets().isEmpty())
-  Log.info("Success!")
-}
-

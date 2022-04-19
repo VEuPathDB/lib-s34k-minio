@@ -3,7 +3,7 @@
 
     <Appenders>
         <Console name="STDOUT">
-            <PatternLayout pattern="%d{ISO8601} %highlight{[%p{lengh=5}]} [%t] %c %m%n" />
+            <PatternLayout pattern="%d{ISO8601} %highlight{[%p{WARN=W, DEBUG=D, ERROR=E, TRACE=T, INFO=I}]} [%t] %c %m%n" />
         </Console>
     </Appenders>
 
