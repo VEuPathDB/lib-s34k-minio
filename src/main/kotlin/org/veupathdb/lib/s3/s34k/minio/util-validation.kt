@@ -3,10 +3,26 @@
 package org.veupathdb.lib.s3.s34k.minio
 
 import org.veupathdb.lib.s3.s34k.errors.InvalidRequestConfigException
-import org.veupathdb.lib.s3.s34k.params.RequestParams
-import org.veupathdb.lib.s3.s34k.params.bucket.SealedBucketReqParams
-import org.veupathdb.lib.s3.s34k.params.`object`.SealedObjReqParams
+import org.veupathdb.lib.s3.s34k.params.BaseRequest
+import org.veupathdb.lib.s3.s34k.params.bucket.BaseBucketRequest
+import org.veupathdb.lib.s3.s34k.params.bucket.BucketName
+import org.veupathdb.lib.s3.s34k.params.`object`.BaseObjectRequest
 import java.io.File
+
+
+internal inline fun BaseBucketRequest.reqBucket(): BucketName {
+  if (this.bucket == null)
+    throw InvalidRequestConfigException("Required field 'bucket' is not set", this)
+
+  return this.bucket!!
+}
+
+internal inline fun BucketName?.require(p: BaseRequest): BucketName {
+  if (this == null)
+    throw InvalidRequestConfigException("Required field 'bucket' is not set.", p)
+
+  return this
+}
 
 /**
  * Requires that the given [value] is set (non-blank).
@@ -19,11 +35,11 @@ import java.io.File
  *
  * @param value Value to test.
  */
-internal inline fun RequestParams.reqNonBlank(key: String, value: String) =
+internal inline fun BaseRequest.reqNonBlank(key: String, value: String) =
   value.ifBlank { throw InvalidRequestConfigException("Required field '$key' is not set.", this) }
 
 
-internal inline fun <R> RequestParams.reqSet(name: String, value: R?) =
+internal inline fun <R> BaseRequest.reqSet(name: String, value: R?) =
   value
     ?: throw InvalidRequestConfigException("Required field '$name' is not set.", this)
 
@@ -32,7 +48,7 @@ internal inline fun <R> RequestParams.reqSet(name: String, value: R?) =
  * Requires that the 'path' property on the receiver object is non-null and
  * non-blank.
  */
-internal inline fun SealedObjReqParams.reqPath() =
+internal inline fun BaseObjectRequest.reqPath() =
   reqNonBlank("path", reqSet("path", path))
 
 
@@ -49,7 +65,7 @@ internal inline fun <I, R> I?.ifNotNull(fn: (I) -> R) {
 /**
  * Require Local File Exists
  */
-internal inline fun File?.reqLFExists(params: RequestParams) =
+internal inline fun File?.reqLFExists(params: BaseRequest) =
   if (this == null)
     throw InvalidRequestConfigException("Required field 'localFile' is not set.", params)
   else if (!exists())

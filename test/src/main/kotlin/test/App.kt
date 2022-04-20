@@ -2,18 +2,16 @@ package test
 
 import org.slf4j.LoggerFactory
 import org.veupathdb.lib.s3.s34k.S3Api
-import org.veupathdb.lib.s3.s34k.S3Bucket
-import org.veupathdb.lib.s3.s34k.S3Client
 import org.veupathdb.lib.s3.s34k.S3Config
 
 private val Log = LoggerFactory.getLogger("AppKt")
 
 fun main() {
-  Log.trace("main()")
-
   val client = S3Api.newClient(S3Config("http://minio", System.getenv("ACCESS_KEY"), System.getenv("ACCESS_TOKEN"), false, null))
 
-  ClientTest(client).run()
+  val result = Result()
+
+  result += ClientTest(client).run()
 
   // delete bucket tags
   // put directory
@@ -25,4 +23,10 @@ fun main() {
   // delete object
   //
 
+  Log.info("Successes: {}", result.successes)
+  if (result.fails > 0) {
+    Log.warn("Failures: {}", result.fails)
+  } else {
+    Log.info("Failures: {}", result.fails)
+  }
 }

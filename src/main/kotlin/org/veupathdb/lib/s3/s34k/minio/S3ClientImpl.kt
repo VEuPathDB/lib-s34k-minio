@@ -8,10 +8,7 @@ import org.veupathdb.lib.s3.s34k.S3Bucket
 import org.veupathdb.lib.s3.s34k.S3Client
 import org.veupathdb.lib.s3.s34k.S3Config
 import org.veupathdb.lib.s3.s34k.S3ErrorCode
-import org.veupathdb.lib.s3.s34k.errors.BucketAlreadyExistsException
-import org.veupathdb.lib.s3.s34k.errors.BucketNotEmptyException
-import org.veupathdb.lib.s3.s34k.errors.BucketNotFoundException
-import org.veupathdb.lib.s3.s34k.errors.S34kException
+import org.veupathdb.lib.s3.s34k.errors.*
 import org.veupathdb.lib.s3.s34k.params.bucket.*
 
 internal class S3ClientImpl(config: S3Config) : S3Client {
@@ -108,12 +105,14 @@ internal class S3ClientImpl(config: S3Config) : S3Client {
 
       return out
     } catch (e: MinioException) {
-      if (e is ErrorResponseException && e.errorResponse().code() == S3ErrorCode.BucketAlreadyExists) {
-        Log.debug("Bucket {} already exists", params.bucket)
-        throw BucketAlreadyExistsException(params.bucket!!, e)
-      } else {
-        throw S34kException("Failed to create bucket ${params.bucket}", e)
+      if (e is ErrorResponseException) {
+        when (e.errorResponse().code()) {
+          S3ErrorCode.BucketAlreadyExists     -> throw BucketAlreadyExistsException(params.bucket!!, e)
+          S3ErrorCode.BucketAlreadyOwnedByYou -> throw BucketAlreadyOwnedByYouException(params.bucket!!, e)
+        }
       }
+
+      throw S34kException("Failed to create bucket ${params.bucket}", e)
     }
 
   }
@@ -146,8 +145,12 @@ internal class S3ClientImpl(config: S3Config) : S3Client {
       Log.debug("Successfully created bucket {} with exists error catch", params.bucket)
 
     } catch (e: MinioException) {
-      if (e is ErrorResponseException && e.errorResponse().code() == S3ErrorCode.BucketAlreadyExists) {
-        Log.debug("Bucket {} already exists with exists error catch", params.bucket)
+      if (e is ErrorResponseException) {
+        if (e.errorResponse().code() == S3ErrorCode.BucketAlreadyExists || e.errorResponse().code() == S3ErrorCode.BucketAlreadyOwnedByYou) {
+          Log.debug("Bucket {} already exists with exists error catch", params.bucket)
+        } else {
+          throw S34kException("Create bucket if not exists failed", e)
+        }
       } else {
         throw S34kException("Create bucket if not exists failed", e)
       }

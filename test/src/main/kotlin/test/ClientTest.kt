@@ -3,185 +3,331 @@ package test
 import org.slf4j.LoggerFactory
 import org.veupathdb.lib.s3.s34k.S3Client
 import org.veupathdb.lib.s3.s34k.errors.BucketAlreadyExistsException
+import org.veupathdb.lib.s3.s34k.errors.BucketNotFoundException
 import org.veupathdb.lib.s3.s34k.params.bucket.BucketName
 
-class ClientTest(val client: S3Client) {
+class ClientTest(private val client: S3Client) {
 
-  private val Log = LoggerFactory.getLogger(this::class.java)
+  private val Log = LoggerFactory.getLogger("ClientTest")
 
-  fun run() {
-    bucketExistsNoBuckets()
-    testBucketExistsWithBucket()
+  fun run(): Result {
+    val out = Result()
 
-    testBucketCreateWithConflict()
-    testBucketCreateWithNoConflict()
+    out.add(bucketExistsNoBucket())
+    out.add(testBucketExistsWithBucket())
 
-    listBucketsWithNoBuckets()
+    out.add(testBucketCreateWithConflict())
+    out.add(testBucketCreateWithNoConflict())
 
-    testCreateIfNotExistsWithConflict()
-    testCreateIfNotExistsWithNoConflict()
+    out.add(listBucketsWithNoBuckets())
+    out.add(listBucketsWithBuckets())
+
+    out.add(testCreateIfNotExistsWithConflict())
+    out.add(testCreateIfNotExistsWithNoConflict())
+
+    out.add(testGetBucketWithNoBucket())
+    out.add(testGetBucketWithBucket())
+
+    out.add(testDeleteBucketWithBucket())
+    out.add(testDeleteBucketWithNoBucket())
+
+    return out
   }
 
-  private fun bucketExistsNoBuckets() {
+  // region Bucket Exists
+
+  /**
+   * Tests the [S3Client.bucketExists] method with no conflicting buckets in the
+   * store.
+   *
+   * Test passes if `bucketExists` returns `false`.
+   */
+  private fun bucketExistsNoBucket(): Boolean {
     Log.info("Testing bucket exists check with non-existent bucket.")
 
-    val name = BucketName("no-bucket-here")
+    return ifNoBuckets {
+      cat {
+        val name = BucketName("no-bucket-here")
 
-    try {
-      assertNoBuckets()
-
-      if (client.bucketExists(name)) {
-        Log.error("Failed! Bucket should not exist, but it does.")
-        return
+        if (client.bucketExists(name)) {
+          fail("Bucket should not exist, but it does.")
+        } else {
+          succeed()
+        }
       }
-    } catch (e: Throwable) {
-      Log.error("Failed with exception!", e)
-      throw e
     }
-
-    Log.info("Success!")
   }
 
-  private fun listBucketsWithNoBuckets() {
+  /**
+   * Tests the [S3Client.bucketExists] method with a matching bucket in the
+   * store.
+   *
+   * Test passes if `bucketExists` returns `true`.
+   */
+  private fun testBucketExistsWithBucket(): Boolean {
+    Log.info("Testing bucket exists check when the target bucket is present.")
+
+    return ifNoBuckets {
+      val name = BucketName("bar")
+
+      cleanCat(name) {
+
+        Log.debug("Creating bucket.")
+        client.createBucket(name)
+
+        if (!client.bucketExists(name)) {
+          fail("Expected bucket to exist but it did not.")
+        } else {
+          succeed()
+        }
+      }
+    }
+
+  }
+
+  // endregion
+
+  // region List Buckets
+
+  /**
+   * Tests the [S3Client.listBuckets] method with no buckets in the store.
+   *
+   * Test passes if the `listBuckets` method returns an empty list.
+   */
+  private fun listBucketsWithNoBuckets(): Boolean {
     Log.info("Testing list buckets when no buckets exist.")
 
-    try {
+    return cat {
       if (client.listBuckets().isNotEmpty()) {
-        Log.error("Failed!  Store contains a non-zero number of buckets when zero buckets were expected.")
-        return
+        fail("Store contains a non-zero number of buckets when zero buckets were expected.")
+      } else {
+        succeed()
       }
-    } catch (e: Throwable) {
-      Log.error("Failed with exception!", e)
-      throw e
     }
-
-    Log.info("Success!")
   }
 
-  private fun testBucketCreateWithNoConflict() {
+  /**
+   * Tests the [S3Client.listBuckets] method with buckets in the store.
+   *
+   * Test passes if the `listBuckets` method returns a list containing only the
+   * expected buckets.
+   */
+  private fun listBucketsWithBuckets(): Boolean {
+    Log.info("Testing that listBuckets returns a list of all buckets in the store.")
+
+    val name1 = BucketName("hello")
+    val name2 = BucketName("goodbye")
+
+    return ifNoBuckets {
+
+      try {
+        Log.debug("Putting bucket 1: $name1")
+        client.createBucket(name1)
+
+        Log.debug("Putting bucket 2: $name2")
+        client.createBucket(name2)
+
+        Log.debug("Retrieving bucket list")
+        val list = client.listBuckets()
+
+        if (list.size != 2)
+          return fail("Bucket list did not contain exactly 2 entries.")
+
+        list.forEach {
+          if (it.name != name1 && it.name != name2)
+            return fail("Bucket list contained a bucket with the unknown name ${it.name}")
+        }
+
+        succeed()
+      } catch (e: Throwable) {
+        Log.error("Test failed with exception!", e)
+        fail("Exception thrown")
+      } finally {
+        cleanup(arrayOf(name1, name2))
+      }
+    }
+  }
+
+  // endregion
+
+  // region Bucket Insert
+
+  private fun testBucketCreateWithNoConflict(): Boolean {
     Log.info("Testing bucket creation.")
 
     val name = BucketName("foo")
 
-    try {
-      assertNoBuckets()
+    return ifNoBuckets {
+      cleanCat(name) {
+        Log.debug("Creating bucket.")
+        client.createBucket(name)
 
-      Log.debug("Creating bucket.")
-      client.createBucket(name)
+        assertBucketExists(name)
 
-      assertBucketExists(name)
-
-      Log.info("Success!")
-    } catch (e: Throwable) {
-      Log.error("Failed with exception!", e)
-      throw e
-    } finally {
-      cleanup(name)
-    }
-  }
-
-  private fun testBucketExistsWithBucket() {
-    Log.info("Testing bucket exists check when the target bucket is present.")
-
-    val name = BucketName("bar")
-
-    try {
-      assertNoBuckets()
-
-      Log.debug("Creating bucket.")
-      client.createBucket(name)
-
-      if (!client.bucketExists(name)) {
-        Log.error("Failed!  Expected bucket to exist but it did not.")
-      } else {
-        Log.info("Success!")
+        succeed()
       }
-    } catch (e: Throwable) {
-      Log.error("Failed with exception!", e)
-      throw e
-    } finally {
-      cleanup(name)
     }
   }
 
-  private fun testBucketCreateWithConflict() {
+  private fun testBucketCreateWithConflict(): Boolean {
     Log.info("Testing bucket creation with a name conflict.")
-
-    assertNoBuckets()
 
     val name = BucketName("hello-world")
 
-    try {
-      Log.debug("Creating bucket 1.")
-      client.createBucket(name)
+    return ifNoBuckets {
+      cleanCat(name) {
+        try {
+          Log.debug("Creating bucket 1.")
+          client.createBucket(name)
 
-      Log.debug("Attempting to create bucket 2.")
-      client.createBucket(name)
+          Log.debug("Attempting to create bucket 2.")
+          client.createBucket(name)
 
-      Log.error("Failed!  Expected BucketAlreadyExistsException to be thrown but it was not.")
-    } catch (e: BucketAlreadyExistsException) {
-      Log.info("Success!")
-    } catch (e: Throwable) {
-      Log.error("Failed with exception!", e)
-      throw e
-    } finally {
-      cleanup(name)
+          fail("Expected BucketAlreadyExistsException to be thrown but it was not.")
+        } catch (e: BucketAlreadyExistsException) {
+          succeed()
+        }
+      }
     }
   }
 
-  private fun testCreateIfNotExistsWithConflict() {
+  // endregion
+
+  // region Bucket Upsert
+
+  private fun testCreateIfNotExistsWithConflict(): Boolean {
     Log.info("Testing bucket upsert with a name conflict.")
 
     val name = BucketName("goodbye")
 
-    try {
-      assertNoBuckets()
+    return ifNoBuckets {
+      cleanCat(name) {
+        Log.debug("Creating bucket 1.")
+        client.createBucket(name)
 
-      Log.debug("Creating bucket 1.")
-      client.createBucket(name)
+        Log.debug("Attempting to create bucket 2.")
+        client.createBucketIfNotExists(name)
 
-      Log.debug("Attempting to create bucket 2.")
-      client.createBucketIfNotExists(name)
-
-      if (client.listBuckets().size != 1) {
-        Log.error("Failed!  Expected store to contain exactly one bucket but it did not.")
-      } else {
-        Log.info("Success!")
+        if (client.listBuckets().size != 1) {
+          fail("Expected store to contain exactly one bucket but it did not.")
+        } else {
+          succeed()
+        }
       }
-    } catch (e: Throwable) {
-      Log.error("Failed with exception!", e)
-      throw e
-    } finally {
-      cleanup(name)
     }
   }
 
-  private fun testCreateIfNotExistsWithNoConflict() {
+  private fun testCreateIfNotExistsWithNoConflict(): Boolean {
     Log.info("Testing bucket upsert with no name conflict.")
 
     val name = BucketName("nope")
 
-    try {
-      assertNoBuckets()
+    return ifNoBuckets {
+      cleanCat(name) {
+        Log.debug("Upsert new bucket.")
+        client.createBucketIfNotExists(name)
 
-      Log.debug("Upsert new bucket.")
-      client.createBucketIfNotExists(name)
-
-      assertBucketExists(name)
-    } catch (e: Throwable) {
-      Log.error("Failed with exception!", e)
-      throw e
-    } finally {
-      cleanup(name)
+        if (!client.bucketExists(name))
+          fail("Expected bucket $name to exist, but it did not.")
+        else
+          succeed()
+      }
     }
   }
 
-  // test delete bucket
-  // test create bucket with no conflict
-  // test createIfNotExists with no conflict
-  // test getBucket with no bucket
-  // test getBucket with bucket
-  // test listBuckets with a bucket
+  // endregion
+
+  // region Get Bucket
+
+  private fun testGetBucketWithNoBucket(): Boolean {
+    Log.info("Testing that getBucket throws a BucketNotFound exception when requesting a non-existent bucket.")
+
+    return ifNoBuckets {
+      val name = BucketName("bucket-name")
+
+      try {
+        client.getBucket(name)
+        fail("Expected getBucket to fail with a BucketNotFoundException but it did not.")
+      } catch (e: BucketNotFoundException) {
+        succeed()
+      } catch (e: Throwable) {
+        fail(e)
+      }
+    }
+  }
+
+  private fun testGetBucketWithBucket(): Boolean {
+    Log.info("Testing that getBucket returns the expected bucket if it exists.")
+
+    return ifNoBuckets {
+      val name = BucketName("something")
+
+      cleanCat(name) {
+
+        Log.debug("Creating bucket {}", name)
+        client.createBucket(name)
+
+        val buck = client.getBucket(name)
+
+        if (buck.name != name) {
+          fail("Returned bucket did not match the created bucket.")
+        } else {
+          succeed()
+        }
+      }
+    }
+  }
+
+  // endregion
+
+  // region Delete Bucket
+
+  private fun testDeleteBucketWithBucket(): Boolean {
+    Log.info("Testing that deleteBucket removes a bucket if it exists")
+
+    return ifNoBuckets {
+      val name = BucketName("nothing")
+
+      cleanCat(name) {
+        Log.debug("Creating bucket $name")
+        client.createBucket(name)
+
+        Log.debug("Confirming bucket creation.")
+        if (!client.bucketExists(name)) {
+          return@cleanCat fail("Bucket '$name' does not exist when it should.")
+        }
+
+        Log.debug("Deleting bucket '$name'")
+        client.deleteBucket(name)
+
+        Log.debug("Confirming bucket deletion.")
+        if (client.bucketExists(name)) {
+          fail("Bucket '$name' still exists after delete call")
+        } else {
+          succeed()
+        }
+      }
+    }
+  }
+
+  private fun testDeleteBucketWithNoBucket(): Boolean {
+    Log.info("Testing that deleteBucket throws a BucketNotFound exception when there is no bucket to delete.")
+
+    return ifNoBuckets {
+      try {
+        Log.debug("Attempting to delete non-existent bucket.")
+        client.deleteBucket(BucketName("foobar"))
+        fail("Expected deleteBucket to throw an exception but it did not.")
+      } catch (e: BucketNotFoundException) {
+        succeed()
+      } catch (e: Throwable) {
+        fail(e)
+      }
+    }
+  }
+
+  // endregion
+
   // test tag bucket
   // test remove bucket tags
 
@@ -193,20 +339,62 @@ class ClientTest(val client: S3Client) {
     }
   }
 
-  private fun assertNoBuckets() {
-    Log.debug("Ensuring bucket list is empty.")
+  private fun succeed(): Boolean {
+    Log.info("Success!")
+    return true
+  }
 
-    if (client.listBuckets().isNotEmpty()) {
-      Log.error("Test precondition failed!  Bucket list is not empty.")
-      throw RuntimeException("Tests failed.")
+  private fun fail(msg: String): Boolean {
+    Log.error("Failed!  $msg")
+    return false
+  }
+
+  private fun fail(err: Throwable): Boolean {
+    Log.error("Failed with exception!", err)
+    return false
+  }
+
+  private inline fun cat(action: () -> Boolean): Boolean {
+    try {
+      return action()
+    } catch (e: Throwable) {
+      Log.error("Test failed with exception!", e)
+      throw e
     }
   }
 
-  private fun cleanup(name: BucketName) {
-    Log.debug("Performing test cleanup for bucket $name")
-    client.deleteBucket(name)
+  private inline fun cleanCat(name: BucketName, action: () -> Boolean): Boolean {
+    try {
+      return cat(action)
+    } finally {
+      cleanup(name)
+    }
+  }
 
-    if (client.listBuckets().isEmpty()) {
+  private inline fun ifNoBuckets(action: () -> Boolean): Boolean {
+    Log.debug("Ensuring no buckets currently exist in the store.")
+
+    if (client.listBuckets().isNotEmpty()) {
+      Log.error("Test precondition failed!  Bucket list is not empty.")
+      return false
+    }
+
+    return action()
+  }
+
+  private fun cleanup(name: BucketName) {
+    cleanup(arrayOf(name))
+  }
+
+  private fun cleanup(names: Array<BucketName>) {
+    for (name in names) {
+      if (client.bucketExists(name)) {
+        Log.debug("Performing test cleanup for bucket $name")
+        client.deleteBucket(name)
+      }
+    }
+
+    if (client.listBuckets().isNotEmpty()) {
       Log.error("Test cleanup failed! Bucket list is not empty.")
       throw RuntimeException("Tests failed.  Please cleanup minio image with 'docker-compose down'")
     }

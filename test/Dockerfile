@@ -2,7 +2,6 @@ FROM alpine:3.15.4
 
 ARG GITHUB_USERNAME
 ARG GITHUB_TOKEN
-ARG GRADLE_VERSION="7.4.2"
 
 RUN apk -U add --no-cache openjdk17-jdk
 
