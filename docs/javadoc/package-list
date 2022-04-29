@@ -1,0 +1,8 @@
+$dokka.format:javadoc-v1
+$dokka.linkExtension:html
+
+operations
+org.veupathdb.lib.s3.s34k.minio
+org.veupathdb.lib.s3.s34k.minio.fields.headers
+org.veupathdb.lib.s3.s34k.minio.response.object
+

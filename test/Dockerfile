@@ -8,10 +8,10 @@ RUN apk -U add --no-cache openjdk17-jdk
 ENV PATH "$PATH:/gradle-${GRADLE_VERSION}/bin/"
 
 COPY ["settings.gradle.kts", "build.gradle.kts", "gradlew", "startup.sh", "./"]
-COPY gradle gradle/
 COPY src src/
+COPY gradle gradle/
 
-RUN ./gradlew shadowJar
+RUN ./gradlew --no-daemon shadowJar
 
 CMD ./startup.sh
 

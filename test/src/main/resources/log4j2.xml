@@ -3,7 +3,7 @@
 
     <Appenders>
         <Console name="STDOUT">
-            <PatternLayout pattern="%d{ISO8601} %highlight{[%p{WARN=W, DEBUG=D, ERROR=E, TRACE=T, INFO=I}]} [%t] %c %m%n" />
+            <PatternLayout pattern="%d{ISO8601} %highlight{[%-5p]} [%12c] %m%n" />
         </Console>
     </Appenders>
 
@@ -12,7 +12,7 @@
             <AppenderRef ref="STDOUT" />
         </Root>
 
-        <Logger name="org.veupathdb.lib.s3.s34k" level="warn" additivity="false">
+        <Logger name="org.veupathdb.lib.s3.s34k" level="off" additivity="false">
             <AppenderRef ref="STDOUT" />
         </Logger>
     </Loggers>

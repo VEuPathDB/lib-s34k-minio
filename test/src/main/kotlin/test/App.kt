@@ -1,5 +1,6 @@
 package test
 
+import io.minio.MinioClient
 import org.slf4j.LoggerFactory
 import org.veupathdb.lib.s3.s34k.S3Api
 import org.veupathdb.lib.s3.s34k.S3Config
@@ -7,11 +8,16 @@ import org.veupathdb.lib.s3.s34k.S3Config
 private val Log = LoggerFactory.getLogger("AppKt")
 
 fun main() {
-  val client = S3Api.newClient(S3Config("http://minio", System.getenv("ACCESS_KEY"), System.getenv("ACCESS_TOKEN"), false, null))
+  val minio  = MinioClient.builder()
+    .endpoint("minio", 80, false)
+    .credentials(System.getenv("ACCESS_KEY"), System.getenv("ACCESS_TOKEN"))
+    .build()
+  val client = S3Api.newClient(S3Config("minio", 80u, false, System.getenv("ACCESS_KEY"), System.getenv("ACCESS_TOKEN")))
 
   val result = Result()
 
-  result += ClientTest(client).run()
+  result += ClientTest(minio, client).run()
+  result += BucketTest(client).run()
 
   // delete bucket tags
   // put directory

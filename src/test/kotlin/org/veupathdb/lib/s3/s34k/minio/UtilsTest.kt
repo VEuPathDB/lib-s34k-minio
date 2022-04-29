@@ -10,49 +10,49 @@ import kotlin.test.assertTrue
 @DisplayName("utils.kt")
 class UtilsTest {
 
-  @Nested
-  @DisplayName("Map<String, Array<String>>.toMultiMap()")
-  inner class ToMultiMap {
-
-    @Test
-    @DisplayName("properly converts the receiver map into a MultiMap instance")
-    fun t1() {
-
-      val input = mapOf(
-        "test1" to arrayOf("a", "b"),
-        "test2" to arrayOf("c"),
-        "test3" to arrayOf("d", "e", "f")
-      )
-
-      val output = input.toMultiMap()
-
-      assertEquals(6, output.size())
-      assertEquals(3, output.asMap().size)
-
-      assertTrue(output.containsKey("test1"))
-      assertTrue(output.containsKey("test2"))
-      assertTrue(output.containsKey("test3"))
-
-      assertEquals(2, output.get("test1").size)
-      assertEquals(1, output.get("test2").size)
-      assertEquals(3, output.get("test3").size)
-
-      var it = output.get("test1").iterator()
-
-      assertEquals("a", it.next())
-      assertEquals("b", it.next())
-
-      it = output.get("test2").iterator()
-
-      assertEquals("c", it.next())
-
-      it = output.get("test3").iterator()
-
-      assertEquals("d", it.next())
-      assertEquals("e", it.next())
-      assertEquals("f", it.next())
-    }
-  }
+//  @Nested
+//  @DisplayName("Map<String, Array<String>>.toMultiMap()")
+//  inner class ToMultiMap {
+//
+//    @Test
+//    @DisplayName("properly converts the receiver map into a MultiMap instance")
+//    fun t1() {
+//
+//      val input = mapOf(
+//        "test1" to arrayOf("a", "b"),
+//        "test2" to arrayOf("c"),
+//        "test3" to arrayOf("d", "e", "f")
+//      )
+//
+//      val output = input.toMultiMap()
+//
+//      assertEquals(6, output.size())
+//      assertEquals(3, output.asMap().size)
+//
+//      assertTrue(output.containsKey("test1"))
+//      assertTrue(output.containsKey("test2"))
+//      assertTrue(output.containsKey("test3"))
+//
+//      assertEquals(2, output.get("test1").size)
+//      assertEquals(1, output.get("test2").size)
+//      assertEquals(3, output.get("test3").size)
+//
+//      var it = output.get("test1").iterator()
+//
+//      assertEquals("a", it.next())
+//      assertEquals("b", it.next())
+//
+//      it = output.get("test2").iterator()
+//
+//      assertEquals("c", it.next())
+//
+//      it = output.get("test3").iterator()
+//
+//      assertEquals("d", it.next())
+//      assertEquals("e", it.next())
+//      assertEquals("f", it.next())
+//    }
+//  }
 
   @Nested
   @DisplayName("Map<K, V>.ifNotEmpty(fn)")

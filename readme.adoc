@@ -1,18 +1,73 @@
 = S3 For Kotlin - Minio
+:source-highlighter: highlightjs
 
 image:https://img.shields.io/badge/jvm-1.8-blue[title="Compatible with JVM 1.8"]
 
 Minio implementation of the https://github.com/VEuPathDB/lib-s34k[S34k] API.
 
-.*Add to project*:
+== Usage
+
+.*Adding to project*:
 [source, kotlin]
 ----
     implementation("org.veupathdb.lib.s3:s34k-minio:0.1.0")
 ----
 
+For a full API reference, see
+https://veupathdb.github.io/lib-s34k/dokka/[the S34K API docs].
+
+This implementation, like all implementations, of the S34K API is loaded
+automatically at runtime and is indirectly accessible through the S34K
+`S3Api.newClient` method.  Direct access of the classes and functions defined
+in this package is unnecessary and strongly discouraged.
+
+.Basic Example
+[source, kotlin]
+----
+fun main() {
+  // Get a client
+  val client = S3Api.newClient(S3Config(
+    url       = "my-s3-host",
+    accessKey = System.getenv("S3_ACCESS_KEY"),
+    secretKey = System.getenv("S3_SECRET_KEY"),
+  ))
+
+  // Get or create a bucket.
+  val bucket = client.createBucketIfNotExists("my-bucket")
+
+  // Put an object into the bucket via InputStream over contents.
+  bucket.putObject("my/object/key", "hello".toByteArray().inputStream())
+
+  // Delete object from bucket
+  bucket.deleteObject("my/object/key")
+}
+----
+
+== Development
+
+=== Testing
+
+==== End-to-End Testing
+
+This project includes automated end-to-end testing executed via
+`docker-compose`.
+
+===== Prerequisites
+
+* `docker`
+* `docker-compose`
+
+===== Execution
+
+[source, bash]
+----
+$ cd test
+$ make end-to-end
+----
+
 
 TODO:
 
-* document adding to project
 * trace level logging of this library may print sensitive information like
   headers, tags, and query params to the output logs.
+* Test recursive/non-recursive minio list object calls, what is the difference?

@@ -1,0 +1,31 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+$dokka.location:operations////PointingToDeclaration/s34k-minio/operations/index.html
+$dokka.location:operations/ObjectTagDeleter///PointingToDeclaration/s34k-minio/operations/-object-tag-deleter/index.html
+$dokka.location:operations/ObjectTagDeleter/ObjectTagDeleter/#org.veupathdb.lib.s3.s34k.S3Bucket#io.minio.MinioClient#org.veupathdb.lib.s3.s34k.requests.object.S3ObjectTagDeleteParams/PointingToDeclaration/s34k-minio/operations/-object-tag-deleter/-object-tag-deleter.html
+$dokka.location:operations/ObjectTagDeleter/execute/#/PointingToDeclaration/s34k-minio/operations/-object-tag-deleter/execute.html
+$dokka.location:operations/RecursiveObjectDeleter///PointingToDeclaration/s34k-minio/operations/-recursive-object-deleter/index.html
+$dokka.location:operations/RecursiveObjectDeleter/RecursiveObjectDeleter/#org.veupathdb.lib.s3.s34k.S3Bucket#io.minio.MinioClient#org.veupathdb.lib.s3.s34k.requests.object.S3ObjectDeleteParams/PointingToDeclaration/s34k-minio/operations/-recursive-object-deleter/-recursive-object-deleter.html
+$dokka.location:operations/RecursiveObjectDeleter/deleteMulti/#kotlin.collections.List[kotlin.String]/PointingToDeclaration/s34k-minio/operations/-recursive-object-deleter/delete-multi.html
+$dokka.location:operations/RecursiveObjectDeleter/deleteSingle/#kotlin.String/PointingToDeclaration/s34k-minio/operations/-recursive-object-deleter/delete-single.html
+$dokka.location:operations/RecursiveObjectDeleter/execute/#/PointingToDeclaration/s34k-minio/operations/-recursive-object-deleter/execute.html
+$dokka.location:operations/RecursiveObjectDeleter/executeRecursive/#/PointingToDeclaration/s34k-minio/operations/-recursive-object-deleter/execute-recursive.html
+$dokka.location:operations/RecursiveObjectDeleter/executeSimple/#/PointingToDeclaration/s34k-minio/operations/-recursive-object-deleter/execute-simple.html
+$dokka.location:operations/RecursiveObjectDeleter/listObjects/#/PointingToDeclaration/s34k-minio/operations/-recursive-object-deleter/list-objects.html
+$dokka.location:org.veupathdb.lib.s3.s34k.minio.fields.headers////PointingToDeclaration/s34k-minio/org.veupathdb.lib.s3.s34k.minio.fields.headers/index.html
+$dokka.location:org.veupathdb.lib.s3.s34k.minio.fields.headers/MinioS3Headers///PointingToDeclaration/s34k-minio/org.veupathdb.lib.s3.s34k.minio.fields.headers/-minio-s3-headers/index.html
+$dokka.location:org.veupathdb.lib.s3.s34k.minio.fields.headers/MinioS3Headers/MinioS3Headers/#okhttp3.Headers/PointingToDeclaration/s34k-minio/org.veupathdb.lib.s3.s34k.minio.fields.headers/-minio-s3-headers/-minio-s3-headers.html
+$dokka.location:org.veupathdb.lib.s3.s34k.minio.response.object////PointingToDeclaration/s34k-minio/org.veupathdb.lib.s3.s34k.minio.response.object/index.html
+$dokka.location:org.veupathdb.lib.s3.s34k.minio.response.object/MinioS3ObjectList///PointingToDeclaration/s34k-minio/org.veupathdb.lib.s3.s34k.minio.response.object/-minio-s3-object-list/index.html
+$dokka.location:org.veupathdb.lib.s3.s34k.minio.response.object/MinioS3ObjectList/MinioS3ObjectList/#org.veupathdb.lib.s3.s34k.S3Bucket#kotlin.collections.Iterable[io.minio.Result[io.minio.messages.Item]]/PointingToDeclaration/s34k-minio/org.veupathdb.lib.s3.s34k.minio.response.object/-minio-s3-object-list/-minio-s3-object-list.html
+$dokka.location:org.veupathdb.lib.s3.s34k.minio.response.object/MinioS3ObjectMeta///PointingToDeclaration/s34k-minio/org.veupathdb.lib.s3.s34k.minio.response.object/-minio-s3-object-meta/index.html
+$dokka.location:org.veupathdb.lib.s3.s34k.minio.response.object/MinioS3ObjectMeta/MinioS3ObjectMeta/#org.veupathdb.lib.s3.s34k.S3Bucket#io.minio.StatObjectResponse/PointingToDeclaration/s34k-minio/org.veupathdb.lib.s3.s34k.minio.response.object/-minio-s3-object-meta/-minio-s3-object-meta.html
+$dokka.location:org.veupathdb.lib.s3.s34k.minio////PointingToDeclaration/s34k-minio/org.veupathdb.lib.s3.s34k.minio/index.html
+$dokka.location:org.veupathdb.lib.s3.s34k.minio/MinioS3ClientProvider///PointingToDeclaration/s34k-minio/org.veupathdb.lib.s3.s34k.minio/-minio-s3-client-provider/index.html
+$dokka.location:org.veupathdb.lib.s3.s34k.minio/MinioS3ClientProvider/MinioS3ClientProvider/#/PointingToDeclaration/s34k-minio/org.veupathdb.lib.s3.s34k.minio/-minio-s3-client-provider/-minio-s3-client-provider.html
+$dokka.location:org.veupathdb.lib.s3.s34k.minio/MinioS3ClientProvider/new/#org.veupathdb.lib.s3.s34k.S3Config/PointingToDeclaration/s34k-minio/org.veupathdb.lib.s3.s34k.minio/-minio-s3-client-provider/new.html
+operations
+org.veupathdb.lib.s3.s34k.minio
+org.veupathdb.lib.s3.s34k.minio.fields.headers
+org.veupathdb.lib.s3.s34k.minio.response.object
+

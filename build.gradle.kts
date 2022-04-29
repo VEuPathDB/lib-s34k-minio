@@ -20,7 +20,7 @@ java {
 
 repositories {
   mavenCentral()
-  mavenLocal()
+//  mavenLocal()
 
   maven {
     name = "GitHubPackages"
@@ -36,7 +36,7 @@ dependencies {
   implementation(kotlin("stdlib"))
   implementation(kotlin("stdlib-jdk8"))
 
-  api("org.veupathdb.lib.s3:s34k:0.1.0-SNAPSHOT") { isChanging = true }
+  api("org.veupathdb.lib.s3:s34k-core:0.1.0+s34k-0.1.0")
   api("io.minio:minio:8.3.8")
   api("org.slf4j:slf4j-api:1.7.36")
 
