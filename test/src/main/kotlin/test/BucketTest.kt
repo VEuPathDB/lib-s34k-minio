@@ -3,14 +3,11 @@ package test
 import org.slf4j.LoggerFactory
 import org.veupathdb.lib.s3.s34k.S3Bucket
 import org.veupathdb.lib.s3.s34k.S3Client
-import org.veupathdb.lib.s3.s34k.fields.BucketName
-import java.util.Random
+import org.veupathdb.lib.s3.s34k.errors.BucketNotEmptyException
 
 class BucketTest(private val client: S3Client) {
 
   private val Log = LoggerFactory.getLogger("BucketTest")
-
-  private val chars = "abcdefghijklmnopqrstuvwxyz0123456789"
 
   fun run(): Result {
     val out = Result()
@@ -20,10 +17,11 @@ class BucketTest(private val client: S3Client) {
     //
 
     Log.info("Bucket.delete when bucket exists")
-    out.add(withBucket(this::deleteBucketWhenExists))
+    out.add(client.withBucket(Log, this::deleteBucketWhenExists))
     Log.info("Bucket.delete when bucket does not exist")
-    out.add(withBucket(this::deleteBucketWhenNotExists))
-    // TODO: when bucket is not empty
+    out.add(client.withBucket(Log, this::deleteBucketWhenNotExists))
+    Log.info("Bucket.delete when bucket is not empty")
+    out.add(client.withBucket(Log, this::deleteBucketWhenNotEmpty))
 
     // TODO: delete recursive when bucket doesn't exist
     // TODO: delete recursive when bucket does exist and is empty
@@ -135,7 +133,21 @@ class BucketTest(private val client: S3Client) {
 
   private fun deleteBucketWhenNotEmpty(bucket: S3Bucket): Boolean {
     Log.debug("Setup: Putting objects into the target bucket")
-    
+    try {
+      bucket.putObject("test/object/1.txt", "hello".byteInputStream(), 5)
+    } catch (e: Throwable) {
+      return Log.fail(e)
+    }
+
+    Log.debug("Attempting to delete non-empty bucket")
+    return try {
+      bucket.delete()
+      Log.fail("Expected Bucket.delete to throw a BucketNotEmptyException, but no exception was thrown.")
+    } catch (e: BucketNotEmptyException) {
+      Log.succeed()
+    } catch (e: Throwable) {
+      Log.fail(e)
+    }
   }
 
   // endregion Delete Bucket
@@ -145,30 +157,4 @@ class BucketTest(private val client: S3Client) {
   //
 
   // endregion Delete Bucket Recursive
-
-  private inline fun withBucket(action: S3Bucket.() -> Boolean): Boolean {
-    val name = BucketName(randomName())
-
-    try {
-      Log.debug("Creating bucket '{}'", name)
-      return client.createBucket(name).action()
-    } finally {
-      Log.debug("Deleting bucket '{}'", name)
-
-      if (client.bucketExists(name))
-        client.deleteBucket(name)
-    }
-  }
-
-
-  private fun randomName(): String {
-    val out = StringBuilder(63)
-    val ran = Random(System.currentTimeMillis())
-
-    for (i in 0..62) {
-      out.append(chars[ran.nextInt(36)])
-    }
-
-    return out.toString()
-  }
 }
