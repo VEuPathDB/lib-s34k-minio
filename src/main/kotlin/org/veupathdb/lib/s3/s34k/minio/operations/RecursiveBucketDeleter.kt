@@ -4,9 +4,12 @@ import io.minio.ListObjectsArgs
 import io.minio.MinioClient
 import io.minio.RemoveBucketArgs
 import io.minio.RemoveObjectsArgs
+import io.minio.Result
 import io.minio.messages.DeleteObject
+import io.minio.messages.Item
 import org.slf4j.LoggerFactory
 import org.veupathdb.lib.s3.s34k.S3Client
+import org.veupathdb.lib.s3.s34k.minio.*
 import org.veupathdb.lib.s3.s34k.minio.DummyIterable
 import org.veupathdb.lib.s3.s34k.minio.isNoSuchBucket
 import org.veupathdb.lib.s3.s34k.minio.reqSet
@@ -17,7 +20,6 @@ import org.veupathdb.lib.s3.s34k.requests.bucket.recursive.S3ClientRecursiveBuck
 import org.veupathdb.lib.s3.s34k.requests.bucket.recursive.S3RecursiveDeletePhase
 import org.veupathdb.lib.s3.s34k.requests.`object`.ObjectDeleteError
 import java.util.stream.Stream
-import java.util.stream.StreamSupport
 
 // TODO: apply global headers to all requests
 internal open class RecursiveBucketDeleter(
@@ -65,10 +67,10 @@ internal open class RecursiveBucketDeleter(
 
       Log.debug("Successfully fetched list of objects in bucket '{}'", params.bucketName)
 
-      return StreamSupport.stream(iterable.spliterator(), false)
-        .map { it.get() }
+      return iterable.toStream()
+        .map(Result<Item>::get)
         .filter { !it.isDeleteMarker }
-        .map { it.objectName() }
+        .map(Item::objectName)
     } catch (e: Throwable) {
       Log.error("Failed to fetch list of objects in bucket '{}'", params.bucketName)
 
