@@ -4,11 +4,9 @@ import io.minio.ListObjectsArgs
 import io.minio.MinioClient
 import io.minio.RemoveBucketArgs
 import io.minio.RemoveObjectsArgs
-import io.minio.errors.ErrorResponseException
 import io.minio.messages.DeleteObject
 import org.slf4j.LoggerFactory
 import org.veupathdb.lib.s3.s34k.S3Client
-import org.veupathdb.lib.s3.s34k.S3ErrorCode
 import org.veupathdb.lib.s3.s34k.minio.DummyIterable
 import org.veupathdb.lib.s3.s34k.minio.isNoSuchBucket
 import org.veupathdb.lib.s3.s34k.minio.reqSet
@@ -36,17 +34,15 @@ internal open class RecursiveBucketDeleter(
   // TODO: v0.2.0 - This should be in the params
   private val pageSize = 100
 
-  fun execute(): Boolean {
+  fun execute() {
     Log.trace("execute()")
 
     try {
       deleteObjects(minio, params, listObjects(minio, params))
       deleteBucket(minio, params)
     } catch (e: RecursiveBucketDeleteError) {
-      throw e.also { it.cause?.also { if (it.isNoSuchBucket()) return false } }
+      throw e.also { it.cause?.also { if (it.isNoSuchBucket()) return } }
     }
-
-    return true
   }
 
   protected fun listObjects(

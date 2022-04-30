@@ -5,12 +5,11 @@ package org.veupathdb.lib.s3.s34k.minio
 import io.minio.messages.Item
 import io.minio.messages.LegalHold
 import io.minio.messages.RetentionMode
-import org.veupathdb.lib.s3.s34k.S3Bucket
 import org.veupathdb.lib.s3.s34k.S3LegalHold
 import org.veupathdb.lib.s3.s34k.S3RetentionMode
 import org.veupathdb.lib.s3.s34k.core.fields.headers.BasicS3Headers
 import org.veupathdb.lib.s3.s34k.core.response.`object`.BasicS3Object
-import org.veupathdb.lib.s3.s34k.minio.fields.headers.MinioS3Headers
+import org.veupathdb.lib.s3.s34k.response.bucket.S3Bucket
 import org.veupathdb.lib.s3.s34k.response.`object`.S3Object
 
 

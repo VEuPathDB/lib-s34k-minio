@@ -5,7 +5,6 @@ import io.minio.GetBucketTagsArgs
 import io.minio.MinioClient
 import io.minio.SetBucketTagsArgs
 import org.slf4j.LoggerFactory
-import org.veupathdb.lib.s3.s34k.S3Bucket
 import org.veupathdb.lib.s3.s34k.core.fields.tags.BasicS3TagMap
 import org.veupathdb.lib.s3.s34k.fields.tags.S3TagMap
 import org.veupathdb.lib.s3.s34k.minio.*
@@ -14,6 +13,7 @@ import org.veupathdb.lib.s3.s34k.minio.queryParams
 import org.veupathdb.lib.s3.s34k.minio.regions
 import org.veupathdb.lib.s3.s34k.minio.toCorrect
 import org.veupathdb.lib.s3.s34k.requests.bucket.S3BucketTagDeleteParams
+import org.veupathdb.lib.s3.s34k.response.bucket.S3Bucket
 
 // TODO: v0.2.0
 internal open class BucketTagDeleter(

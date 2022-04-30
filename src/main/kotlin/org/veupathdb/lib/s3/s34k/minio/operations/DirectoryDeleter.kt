@@ -29,10 +29,10 @@ class DirectoryDeleter(
   // TODO: this should be configurable in the params.
   private val maxKeys = 1000
 
-  fun execute(): Boolean {
+  fun execute() {
     Log.trace("execute()")
 
-    return if (params.recursive) {
+    if (params.recursive) {
       Log.debug("Recursively deleting directory '{}' from bucket '{}'", params.path, bucket.bucketName)
       deleteRecursive()
     } else {
@@ -41,7 +41,7 @@ class DirectoryDeleter(
     }
   }
 
-  fun deleteSimple(): Boolean {
+  fun deleteSimple() {
     Log.trace("deleteSimple()")
 
     // If there exists even one object with the target path as a prefix, then
@@ -50,7 +50,7 @@ class DirectoryDeleter(
       throw DirectoryNotEmptyError(bucket.bucketName.name, params.path!!)
 
     if (!objectExists()) {
-      return params.callback.invoke("deleteSimple", Log, false)
+      return params.callback.invoke("deleteSimple", Log)
     }
 
     try {
@@ -61,7 +61,7 @@ class DirectoryDeleter(
         .headers(params.headers)
         .queryParams(params.queryParams)
         .build())
-      return params.callback.invoke("deleteSimple", Log, true)
+      return params.callback.invoke("deleteSimple", Log)
     } catch (e: Throwable) {
       throw e.toCorrect {
         "Failed to delete directory '${params.path}'"
@@ -69,7 +69,7 @@ class DirectoryDeleter(
     }
   }
 
-  fun deleteRecursive(): Boolean {
+  fun deleteRecursive() {
     Log.trace("deleteRecursive()")
 
     // We need to consume the stream here to get a count of the files to delete.
@@ -110,16 +110,6 @@ class DirectoryDeleter(
       }
     }
 
-    // Does directory entry itself exist?
-    val exists = objectExists()
-
-    // If not, then we can bail here because we have nothing to delete.
-    if (!exists)
-      // Return whether we deleted anything as an indicator of whether the
-      // 'directory' existed.  If there were objects to delete, then they were
-      // subkeys of the target which means the target key was present.
-      return deleteables.isNotEmpty()
-
     // Attempt to delete the directory itself
     try {
       // Remove the directory key itself.
@@ -133,8 +123,6 @@ class DirectoryDeleter(
     } catch (e: Throwable) {
       throw e.toCorrect { "Failed to delete directory '${params.path}' from bucket '${bucket.bucketName}'" }
     }
-
-    return true
   }
 
   fun objectExists(): Boolean {

@@ -13,9 +13,7 @@ import org.veupathdb.lib.s3.s34k.fields.S3PathSet
 import org.veupathdb.lib.s3.s34k.fields.headers.S3Headers
 import org.veupathdb.lib.s3.s34k.fields.query_params.S3QueryParams
 import org.veupathdb.lib.s3.s34k.requests.S3RegionRequestParams
-import org.veupathdb.lib.s3.s34k.requests.S3RequestParams
 import org.veupathdb.lib.s3.s34k.response.bucket.S3Bucket
-import java.util.Collections
 import java.util.stream.StreamSupport
 
 /**
@@ -122,15 +120,6 @@ internal inline fun <T> Iterable<T>.toStream() = StreamSupport.stream(spliterato
 internal inline fun <K, V, R> Map<K, V>.ifNotEmpty(fn: (Map<K, V>) -> R) {
   if (isNotEmpty()) fn(this)
 }
-
-internal inline fun <K, V> Map<K, V>.immutable(): Map<K, V> =
-  Collections.unmodifiableMap(this)
-
-internal inline fun <E> List<E>.immutable(): List<E> =
-  Collections.unmodifiableList(this)
-
-internal inline fun <E> Set<E>.immutable(): Set<E> =
-  Collections.unmodifiableSet(this)
 
 internal inline fun <R> String?.ifSet(fn: (String) -> R) {
   if (this != null && this.isNotBlank())

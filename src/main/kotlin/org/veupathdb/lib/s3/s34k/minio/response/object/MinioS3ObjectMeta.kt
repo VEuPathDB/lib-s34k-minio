@@ -1,10 +1,10 @@
 package org.veupathdb.lib.s3.s34k.minio.response.`object`
 
 import io.minio.StatObjectResponse
-import org.veupathdb.lib.s3.s34k.S3Bucket
 import org.veupathdb.lib.s3.s34k.core.response.`object`.BasicS3ObjectMeta
 import org.veupathdb.lib.s3.s34k.minio.fields.headers.MinioS3Headers
 import org.veupathdb.lib.s3.s34k.minio.fromMinio
+import org.veupathdb.lib.s3.s34k.response.bucket.S3Bucket
 
 class MinioS3ObjectMeta(bucket: S3Bucket, res: StatObjectResponse) :
   BasicS3ObjectMeta(

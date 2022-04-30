@@ -5,13 +5,13 @@ import io.minio.GetObjectTagsArgs
 import io.minio.MinioClient
 import io.minio.SetObjectTagsArgs
 import org.slf4j.LoggerFactory
-import org.veupathdb.lib.s3.s34k.S3Bucket
 import org.veupathdb.lib.s3.s34k.core.fields.tags.BasicS3TagMap
 import org.veupathdb.lib.s3.s34k.fields.tags.S3TagMap
 import org.veupathdb.lib.s3.s34k.minio.invoke
 import org.veupathdb.lib.s3.s34k.minio.reqPath
 import org.veupathdb.lib.s3.s34k.minio.throwCorrect
 import org.veupathdb.lib.s3.s34k.requests.`object`.S3ObjectTagDeleteParams
+import org.veupathdb.lib.s3.s34k.response.bucket.S3Bucket
 
 class ObjectTagDeleter(
   private val bucket: S3Bucket,

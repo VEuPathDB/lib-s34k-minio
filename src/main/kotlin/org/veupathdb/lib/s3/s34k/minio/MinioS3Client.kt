@@ -15,6 +15,7 @@ import org.veupathdb.lib.s3.s34k.minio.operations.RecursiveBucketDeleter
 import org.veupathdb.lib.s3.s34k.requests.bucket.recursive.S3ClientRecursiveBucketDeleteParams
 import org.veupathdb.lib.s3.s34k.requests.client.*
 import org.veupathdb.lib.s3.s34k.response.S3BucketList
+import org.veupathdb.lib.s3.s34k.response.bucket.S3Bucket
 
 internal class MinioS3Client(config: S3Config) : S3Client, BasicS3Client(config.region) {
 
@@ -215,7 +216,7 @@ internal class MinioS3Client(config: S3Config) : S3Client, BasicS3Client(config.
   }
 
 
-  override fun deleteBucket(params: S3BucketDeleteParams): Boolean {
+  override fun deleteBucket(params: S3BucketDeleteParams) {
     Log.trace("deleteBucket(params = {})", params)
 
     try {
@@ -230,11 +231,11 @@ internal class MinioS3Client(config: S3Config) : S3Client, BasicS3Client(config.
 
       Log.debug("Successfully deleted bucket '{}'", params.bucketName)
 
-      return true
+      return
 
     } catch (e: Throwable) {
       if (e.isNoSuchBucket())
-        return false
+        return
 
       Log.error("Failed to delete bucket '{}'", params.bucketName)
 
@@ -245,7 +246,7 @@ internal class MinioS3Client(config: S3Config) : S3Client, BasicS3Client(config.
   }
 
 
-  override fun deleteBucketRecursive(params: S3ClientRecursiveBucketDeleteParams): Boolean {
+  override fun deleteBucketRecursive(params: S3ClientRecursiveBucketDeleteParams) {
     Log.trace("deleteBucketRecursive(params = {})", params)
     return RecursiveBucketDeleter(this, client, params).execute()
   }

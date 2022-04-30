@@ -97,13 +97,13 @@ internal class MinioS3Bucket(
   }
 
 
-  override fun delete(params: S3DeleteRequestParams): Boolean {
+  override fun delete(params: S3DeleteRequestParams) {
     Log.trace("delete(params = {})", params)
     return client.deleteBucket(params.toBucketDeleteParams(bucketName))
   }
 
 
-  override fun deleteRecursive(params: S3RecursiveBucketDeleteParams): Boolean {
+  override fun deleteRecursive(params: S3RecursiveBucketDeleteParams) {
     Log.trace("deleteRecursive(params = {})", params)
 
     return client.deleteBucketRecursive(
@@ -551,7 +551,7 @@ internal class MinioS3Bucket(
     return ObjectTagDeleter(this, minio, params).execute()
   }
 
-  override fun deleteObject(params: S3ObjectDeleteParams): Boolean {
+  override fun deleteObject(params: S3ObjectDeleteParams) {
     Log.trace("deleteObject(params = {})", params)
 
     try {
@@ -563,7 +563,7 @@ internal class MinioS3Bucket(
         params.path,
         bucketName)
 
-      return true
+      return
     } catch (e: Throwable) {
       if (e is ErrorResponseException && e.errorResponse()
           .code() == S3ErrorCode.NoSuchKey
@@ -571,16 +571,15 @@ internal class MinioS3Bucket(
         Log.debug("Could not delete object '{}' from bucket '{}'.  Object did not exist.",
           params.path,
           bucketName)
-        return false
+        return
       }
 
       Log.error("Failed to delete object '{}' from bucket '{}'",
         params.path,
         bucketName)
-      e.throwCorrect {
+      throw e.toCorrect {
         "Failed to delete object '${params.path}' from bucket '$bucketName'"
       }
-      throw IllegalStateException()
     }
   }
 
@@ -631,7 +630,7 @@ internal class MinioS3Bucket(
     )
   }
 
-  override fun deleteDirectory(params: S3DirectoryDeleteParams): Boolean {
+  override fun deleteDirectory(params: S3DirectoryDeleteParams) {
     Log.trace("deleteDirectory(params = {})", params)
 
     return DirectoryDeleter(minio, this, params).execute()
