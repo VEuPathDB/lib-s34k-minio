@@ -5,6 +5,7 @@ package org.veupathdb.lib.s3.s34k.minio
 import io.minio.*
 import org.veupathdb.lib.s3.s34k.fields.BucketName
 import org.veupathdb.lib.s3.s34k.requests.`object`.*
+import org.veupathdb.lib.s3.s34k.requests.`object`.directory.S3DirectoryCreateParams
 
 
 // region Tag Params

@@ -80,9 +80,9 @@ class ClientTest(
         val name = BucketName("no-bucket-here")
 
         if (client.bucketExists(name)) {
-          fail("Bucket should not exist, but it does.")
+          Log.fail("Bucket should not exist, but it does.")
         } else {
-          succeed()
+          Log.succeed()
         }
       }
     }
@@ -104,9 +104,9 @@ class ClientTest(
         client.createBucket(name)
 
         if (!client.bucketExists(name)) {
-          fail("Expected bucket to exist but it did not.")
+          Log.fail("Expected bucket to exist but it did not.")
         } else {
-          succeed()
+          Log.succeed()
         }
       }
     }
@@ -125,9 +125,9 @@ class ClientTest(
   private fun listBucketsWithNoBuckets(): Boolean {
     return cat {
       if (client.listBuckets().isNotEmpty) {
-        fail("Store contains a non-zero number of buckets when zero buckets were expected.")
+        Log.fail("Store contains a non-zero number of buckets when zero buckets were expected.")
       } else {
-        succeed()
+        Log.succeed()
       }
     }
   }
@@ -155,17 +155,17 @@ class ClientTest(
         val list = client.listBuckets()
 
         if (list.size != 2)
-          return fail("Bucket list did not contain exactly 2 entries.")
+          return Log.fail("Bucket list did not contain exactly 2 entries.")
 
         list.forEach {
           if (it.bucketName != name1 && it.bucketName != name2)
-            return fail("Bucket list contained a bucket with the unknown name ${it.bucketName}")
+            return Log.fail("Bucket list contained a bucket with the unknown name ${it.bucketName}")
         }
 
-        succeed()
+        Log.succeed()
       } catch (e: Throwable) {
         Log.error("Test failed with exception!", e)
-        fail("Exception thrown")
+        Log.fail("Exception thrown")
       } finally {
         cleanup(arrayOf(name1, name2))
       }
@@ -186,7 +186,7 @@ class ClientTest(
 
         assertBucketExists(name)
 
-        succeed()
+        Log.succeed()
       }
     }
   }
@@ -203,9 +203,9 @@ class ClientTest(
           Log.debug("Attempting to create bucket 2.")
           client.createBucket(name)
 
-          fail("Expected BucketAlreadyExistsException to be thrown but it was not.")
+          Log.fail("Expected BucketAlreadyExistsException to be thrown but it was not.")
         } catch (e: BucketAlreadyExistsException) {
-          succeed()
+          Log.succeed()
         }
       }
     }
@@ -227,9 +227,9 @@ class ClientTest(
         client.createBucketIfNotExists(name)
 
         if (client.listBuckets().size != 1) {
-          fail("Expected store to contain exactly one bucket but it did not.")
+          Log.fail("Expected store to contain exactly one bucket but it did not.")
         } else {
-          succeed()
+          Log.succeed()
         }
       }
     }
@@ -244,9 +244,9 @@ class ClientTest(
         client.createBucketIfNotExists(name)
 
         if (!client.bucketExists(name))
-          fail("Expected bucket $name to exist, but it did not.")
+          Log.fail("Expected bucket $name to exist, but it did not.")
         else
-          succeed()
+          Log.succeed()
       }
     }
   }
@@ -261,11 +261,11 @@ class ClientTest(
 
       try {
         client.getBucket(name)
-        fail("Expected getBucket to fail with a BucketNotFoundException but it did not.")
+        Log.fail("Expected getBucket to fail with a BucketNotFoundException but it did not.")
       } catch (e: BucketNotFoundException) {
-        succeed()
+        Log.succeed()
       } catch (e: Throwable) {
-        fail(e)
+        Log.fail(e)
       }
     }
   }
@@ -282,9 +282,9 @@ class ClientTest(
         val buck = client.getBucket(name)
 
         if (buck.bucketName != name) {
-          fail("Returned bucket did not match the created bucket.")
+          Log.fail("Returned bucket did not match the created bucket.")
         } else {
-          succeed()
+          Log.succeed()
         }
       }
     }
@@ -298,9 +298,9 @@ class ClientTest(
     Log.debug("Setup: ensure no buckets currently exist")
     try {
       if (minio.listBuckets().isNotEmpty())
-        return fail("Test precondition failed, bucket list is not empty.")
+        return Log.fail("Test precondition failed, bucket list is not empty.")
     } catch (e: Throwable) {
-      return fail(e)
+      return Log.fail(e)
     }
 
     val name = "bucket-to-delete"
@@ -309,37 +309,37 @@ class ClientTest(
     try {
       minio.makeBucket(name)
     } catch (e: Throwable) {
-      return fail(e)
+      return Log.fail(e)
     }
 
     Log.debug("Attempting to delete bucket '{}'", name)
     try {
       if (!client.deleteBucket(BucketName(name)))
-        return fail("Expected deleteBucket to return true but it returned false")
+        return Log.fail("Expected deleteBucket to return true but it returned false")
     } catch (e: Throwable) {
-      return fail(e)
+      return Log.fail(e)
     }
 
-    return succeed()
+    return Log.succeed()
   }
 
   private fun testDeleteBucketWithNoBucket(): Boolean {
     Log.debug("Setup: ensure no buckets currently exist")
     try {
       if (minio.listBuckets().isNotEmpty())
-        return fail("Test precondition failed, bucket list is not empty.")
+        return Log.fail("Test precondition failed, bucket list is not empty.")
     } catch (e: Throwable) {
-      return fail(e)
+      return Log.fail(e)
     }
 
     Log.debug("Attempting to delete non-existent bucket.")
     return try {
       if (client.deleteBucket(BucketName("foobar")))
-        fail("Expected deleteBucket to return false but it returned true")
+        Log.fail("Expected deleteBucket to return false but it returned true")
       else
-        succeed()
+        Log.succeed()
     } catch (e: Throwable) {
-      fail(e)
+      Log.fail(e)
     }
   }
 
@@ -349,9 +349,9 @@ class ClientTest(
     Log.debug("Setup: ensure no buckets currently exist")
     try {
       if (minio.listBuckets().isNotEmpty())
-        return fail("Test precondition failed, bucket list is not empty.")
+        return Log.fail("Test precondition failed, bucket list is not empty.")
     } catch (e: Throwable) {
-      return fail(e)
+      return Log.fail(e)
     }
 
     Log.debug("Setup: create test bucket")
@@ -360,7 +360,7 @@ class ClientTest(
         .bucket(bucketName)
         .build())
     } catch (e: Throwable) {
-      return fail(e)
+      return Log.fail(e)
     }
 
     Log.debug("Setup: populate test bucket")
@@ -372,17 +372,17 @@ class ClientTest(
         .stream(ByteArrayInputStream("false".toByteArray()), 5, -1)
         .build())
     } catch (e: Throwable) {
-      return fail(e)
+      return Log.fail(e)
     }
 
     Log.debug("Attempting bucket removal")
     return try {
       client.deleteBucket(BucketName(bucketName))
-      fail("No exception was thrown.")
+      Log.fail("No exception was thrown.")
     } catch (e: BucketNotEmptyException) {
-      succeed()
+      Log.succeed()
     } catch (e: Throwable) {
-      fail(e)
+      Log.fail(e)
     }
   }
 
@@ -394,29 +394,29 @@ class ClientTest(
     Log.debug("Setup: Ensure no buckets currently exist.")
     try {
       if (minio.listBuckets().isNotEmpty())
-        return fail("Test precondition failed: buckets already exist in the store")
+        return Log.fail("Test precondition failed: buckets already exist in the store")
     } catch (e: Throwable) {
-      return fail(e)
+      return Log.fail(e)
     }
 
     Log.debug("Attempting to delete non-existent bucket.")
     try {
       if (client.deleteBucketRecursive(BucketName("something")))
-        return fail("deleteBucketRecursive returned true when false was expected")
+        return Log.fail("deleteBucketRecursive returned true when false was expected")
     } catch (e: Throwable) {
-      return fail(e)
+      return Log.fail(e)
     }
 
-    return succeed()
+    return Log.succeed()
   }
 
   private fun testRecursiveDeleteWithEmptyBucket(): Boolean {
     Log.debug("Setup: Ensure no buckets currently exist.")
     try {
       if (minio.listBuckets().isNotEmpty())
-        return fail("Test precondition failed: buckets already exist in the store")
+        return Log.fail("Test precondition failed: buckets already exist in the store")
     } catch (e: Throwable) {
-      return fail(e)
+      return Log.fail(e)
     }
 
     val bucketName = "some-bucket"
@@ -425,27 +425,27 @@ class ClientTest(
     try {
       minio.makeBucket(bucketName)
     } catch (e: Throwable) {
-      return fail(e)
+      return Log.fail(e)
     }
 
     Log.debug("Attempting to delete empty bucket '{}'", bucketName)
     try {
       if (!client.deleteBucketRecursive(BucketName(bucketName)))
-        return fail("deleteBucketRecursive returned false when true was expected")
+        return Log.fail("deleteBucketRecursive returned false when true was expected")
     } catch (e: Throwable) {
-      return fail(e)
+      return Log.fail(e)
     }
 
-    return succeed()
+    return Log.succeed()
   }
 
   private fun testRecursiveDeleteWithNonEmptyBucket(): Boolean {
     Log.debug("Setup: Ensure no buckets currently exist.")
     try {
       if (minio.listBuckets().isNotEmpty())
-        return fail("Test precondition failed: buckets already exist in the store")
+        return Log.fail("Test precondition failed: buckets already exist in the store")
     } catch (e: Throwable) {
-      return fail(e)
+      return Log.fail(e)
     }
 
     val bucketName = "my-bucket"
@@ -454,7 +454,7 @@ class ClientTest(
     try {
       minio.makeBucket(bucketName)
     } catch (e: Throwable) {
-      return fail(e)
+      return Log.fail(e)
     }
 
     Log.debug("Setup: populating bucket '{}'", bucketName)
@@ -468,7 +468,7 @@ class ClientTest(
         "69"    to "666",
       )
     } catch (e: Throwable) {
-      return fail(e)
+      return Log.fail(e)
     }
 
     Log.debug("Setup: ensuring object existence for bucket '{}'", bucketName)
@@ -482,20 +482,28 @@ class ClientTest(
       res.forEach { _ -> counter++ }
 
       if (counter != 6)
-        return fail("Test precondition failed, not all objects were created.")
+        return Log.fail("Test precondition failed, not all objects were created.")
     } catch (e: Throwable) {
-      return fail(e)
+      return Log.fail(e)
     }
 
     Log.debug("Attempting to recursively delete non-empty bucket '{}'", bucketName)
     try {
       if (!client.deleteBucketRecursive(BucketName(bucketName)))
-        return fail("deleteBucketRecursive returned false when true was expected")
+        return Log.fail("deleteBucketRecursive returned false when true was expected")
     } catch (e: Throwable) {
-      return fail(e)
+      return Log.fail(e)
     }
 
-    return succeed()
+    Log.debug("Verifying bucket was deleted.")
+    try {
+      if (minio.listBuckets().isNotEmpty())
+        return Log.fail("Bucket was not deleted when it should have been")
+    } catch (e: Throwable) {
+      return Log.fail(e)
+    }
+
+    return Log.succeed()
   }
 
   // endregion Recursive Bucket Delete
@@ -510,21 +518,6 @@ class ClientTest(
       Log.error("Test condition failed!  Bucket $name does not exist!")
       throw RuntimeException("Tests failed.")
     }
-  }
-
-  private fun succeed(): Boolean {
-    Log.debug("Success!")
-    return true
-  }
-
-  private fun fail(msg: String): Boolean {
-    Log.error("Failed!  $msg")
-    return false
-  }
-
-  private fun fail(err: Throwable): Boolean {
-    Log.error("Failed with exception!", err)
-    return false
   }
 
   private inline fun cat(action: () -> Boolean): Boolean {

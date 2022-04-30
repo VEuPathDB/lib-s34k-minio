@@ -3,7 +3,7 @@
 
     <Appenders>
         <Console name="STDOUT">
-            <PatternLayout pattern="%d{ISO8601} %highlight{[%-5p]} [%12c] %m%n" />
+            <PatternLayout pattern="%d{ISO8601} %highlight{[%-5p]} [%10c] %m%n" />
         </Console>
     </Appenders>
 

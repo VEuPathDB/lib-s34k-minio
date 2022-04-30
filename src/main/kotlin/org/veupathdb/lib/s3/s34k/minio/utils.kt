@@ -8,12 +8,23 @@ import io.minio.BaseArgs
 import io.minio.BucketArgs
 import io.minio.messages.DeleteObject
 import org.slf4j.Logger
+import org.veupathdb.lib.s3.s34k.fields.BucketName
 import org.veupathdb.lib.s3.s34k.fields.S3PathSet
 import org.veupathdb.lib.s3.s34k.fields.headers.S3Headers
 import org.veupathdb.lib.s3.s34k.fields.query_params.S3QueryParams
-import java.util.Base64
+import org.veupathdb.lib.s3.s34k.requests.S3RegionRequestParams
+import org.veupathdb.lib.s3.s34k.requests.S3RequestParams
+import org.veupathdb.lib.s3.s34k.response.bucket.S3Bucket
 import java.util.Collections
+import java.util.stream.StreamSupport
 
+/**
+ * Dummy Iterable
+ *
+ * Simple type that wraps an iterator.  Basic use is to wrap a java Stream's
+ * iterator for use in for loops and other places where an [Iterable] instance
+ * is desired.
+ */
 internal class DummyIterable<T>(
   private val it: Iterator<T>,
   private var reusable: Boolean = true,
@@ -28,6 +39,19 @@ internal class DummyIterable<T>(
   }
 }
 
+
+// region MinIO Builder Extensions
+
+/**
+ * Simple bucket setter that unwraps [BucketName] instances.
+ */
+internal inline fun <B : BucketArgs.Builder<B, A>, A : BucketArgs> B.bucket(name: BucketName) = bucket(name.name)
+internal inline fun <B : BucketArgs.Builder<B, A>, A : BucketArgs> B.bucket(bucket: S3Bucket) = bucket(bucket.bucketName)
+
+/**
+ * Region setter that chooses the first non-null value to set as the builder's
+ * region value.
+ */
 internal inline fun <B : BucketArgs.Builder<B, A>, A : BucketArgs> B.regions(vararg regions: String?) =
   also {
     for (r in regions) {
@@ -38,12 +62,24 @@ internal inline fun <B : BucketArgs.Builder<B, A>, A : BucketArgs> B.regions(var
       break
     }
   }
+internal inline fun <B : BucketArgs.Builder<B, A>, A : BucketArgs> B.region(
+  params: S3RegionRequestParams,
+  bucket: S3Bucket
+) = region(params.region ?: bucket.defaultRegion ?: bucket.client.defaultRegion)
 
 internal inline fun <B : BaseArgs.Builder<B, A>, A : BaseArgs> B.headers(headers: S3Headers) =
   also { it.extraHeaders(headers.toMultiMap()) }
 
 internal inline fun <B : BaseArgs.Builder<B, A>, A : BaseArgs> B.queryParams(queryParams: S3QueryParams) =
   also { it.extraQueryParams(queryParams.toMultiMap()) }
+
+// endregion MinIO Builder Extensions
+
+
+/**
+ * Ensures that the receiver string ends with a '/' character.
+ */
+internal inline fun String.asPath() = if (endsWith('/')) this else "$this/"
 
 
 internal inline fun S3Headers.toMultiMap(): Multimap<String, String> {
@@ -80,6 +116,8 @@ internal inline fun S3PathSet.toDelObjList() : Iterable<DeleteObject> {
 
   return out
 }
+
+internal inline fun <T> Iterable<T>.toStream() = StreamSupport.stream(spliterator(), false)
 
 internal inline fun <K, V, R> Map<K, V>.ifNotEmpty(fn: (Map<K, V>) -> R) {
   if (isNotEmpty()) fn(this)

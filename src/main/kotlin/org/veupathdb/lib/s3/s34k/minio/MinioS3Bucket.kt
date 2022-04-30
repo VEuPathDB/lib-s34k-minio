@@ -19,6 +19,7 @@ import org.veupathdb.lib.s3.s34k.fields.BucketName
 import org.veupathdb.lib.s3.s34k.fields.tags.S3TagMap
 import org.veupathdb.lib.s3.s34k.minio.fields.headers.MinioS3Headers
 import org.veupathdb.lib.s3.s34k.minio.operations.BucketTagDeleter
+import org.veupathdb.lib.s3.s34k.minio.operations.DirectoryDeleter
 import org.veupathdb.lib.s3.s34k.minio.response.`object`.MinioS3ObjectList
 import org.veupathdb.lib.s3.s34k.minio.response.`object`.MinioS3ObjectMeta
 import org.veupathdb.lib.s3.s34k.requests.S3BlankTagCreateParams
@@ -27,6 +28,9 @@ import org.veupathdb.lib.s3.s34k.requests.S3DeleteRequestParams
 import org.veupathdb.lib.s3.s34k.requests.bucket.S3BucketTagDeleteParams
 import org.veupathdb.lib.s3.s34k.requests.bucket.recursive.S3RecursiveBucketDeleteParams
 import org.veupathdb.lib.s3.s34k.requests.`object`.*
+import org.veupathdb.lib.s3.s34k.requests.`object`.directory.S3DirectoryCreateParams
+import org.veupathdb.lib.s3.s34k.requests.`object`.directory.S3DirectoryDeleteParams
+import org.veupathdb.lib.s3.s34k.response.bucket.S3Bucket
 import org.veupathdb.lib.s3.s34k.response.`object`.*
 import java.time.OffsetDateTime
 
@@ -625,6 +629,12 @@ internal class MinioS3Bucket(
       Log,
       MinioS3ObjectList(this, objects)
     )
+  }
+
+  override fun deleteDirectory(params: S3DirectoryDeleteParams): Boolean {
+    Log.trace("deleteDirectory(params = {})", params)
+
+    return DirectoryDeleter(minio, this, params).execute()
   }
 
   // endregion Object Operations
