@@ -60,3 +60,9 @@ internal fun MinioClient.makeObjects(bucket: String, vararg contents: Pair<Strin
       .build())
   }
 }
+
+internal fun MinioClient.bucketExists(bucket: String): Boolean {
+  return bucketExists(BucketExistsArgs.builder()
+    .bucket(bucket)
+    .build())
+}

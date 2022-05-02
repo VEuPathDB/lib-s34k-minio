@@ -1,9 +1,9 @@
 package test
 
 import org.slf4j.LoggerFactory
-import org.veupathdb.lib.s3.s34k.S3Bucket
 import org.veupathdb.lib.s3.s34k.S3Client
 import org.veupathdb.lib.s3.s34k.errors.BucketNotEmptyException
+import org.veupathdb.lib.s3.s34k.response.bucket.S3Bucket
 
 class BucketTest(private val client: S3Client) {
 
@@ -93,6 +93,11 @@ class BucketTest(private val client: S3Client) {
     // TODO: put directory when object already exists
     // TODO: put directory when object does not exist
 
+    // TODO: delete directory when bucket does not exist
+    // TODO: delete directory when object does not exist
+    // TODO: delete directory when object has no sub-keys
+    // TODO: delete directory when object has sub-keys
+
 
     return out
   }
@@ -102,8 +107,15 @@ class BucketTest(private val client: S3Client) {
   private fun deleteBucketWhenExists(bucket: S3Bucket): Boolean {
     Log.debug("Attempting to delete bucket '{}'.", bucket.bucketName)
     try {
-      if (!bucket.delete())
-        return Log.fail("expected delete() to return true but it returned false")
+      bucket.delete()
+    } catch (e: Throwable) {
+      return Log.fail(e)
+    }
+
+    Log.debug("Verifying bucket was deleted.")
+    try {
+      if (client.bucketExists(bucket.bucketName))
+        return Log.fail("Bucket was not deleted when it should have been")
     } catch (e: Throwable) {
       return Log.fail(e)
     }
@@ -122,8 +134,7 @@ class BucketTest(private val client: S3Client) {
 
     Log.debug("Attempting to delete bucket '{}'", bucket.bucketName)
     try {
-      if (bucket.delete())
-        return Log.fail("expected delete() to return false but it returned true")
+      bucket.delete()
     } catch (e: Throwable) {
       return Log.fail(e)
     }

@@ -1,9 +1,6 @@
 package test
 
-import io.minio.ListObjectsArgs
-import io.minio.MakeBucketArgs
-import io.minio.MinioClient
-import io.minio.PutObjectArgs
+import io.minio.*
 import org.slf4j.LoggerFactory
 import org.veupathdb.lib.s3.s34k.S3Client
 import org.veupathdb.lib.s3.s34k.errors.BucketAlreadyExistsException
@@ -314,8 +311,15 @@ class ClientTest(
 
     Log.debug("Attempting to delete bucket '{}'", name)
     try {
-      if (!client.deleteBucket(BucketName(name)))
-        return Log.fail("Expected deleteBucket to return true but it returned false")
+      client.deleteBucket(BucketName(name))
+    } catch (e: Throwable) {
+      return Log.fail(e)
+    }
+
+    Log.debug("Verifying bucket was deleted.")
+    try {
+      if (minio.bucketExists(name))
+        return Log.fail("Bucket was not deleted when it should have been")
     } catch (e: Throwable) {
       return Log.fail(e)
     }
@@ -334,10 +338,8 @@ class ClientTest(
 
     Log.debug("Attempting to delete non-existent bucket.")
     return try {
-      if (client.deleteBucket(BucketName("foobar")))
-        Log.fail("Expected deleteBucket to return false but it returned true")
-      else
-        Log.succeed()
+      client.deleteBucket(BucketName("foobar"))
+      Log.succeed()
     } catch (e: Throwable) {
       Log.fail(e)
     }
@@ -400,14 +402,12 @@ class ClientTest(
     }
 
     Log.debug("Attempting to delete non-existent bucket.")
-    try {
-      if (client.deleteBucketRecursive(BucketName("something")))
-        return Log.fail("deleteBucketRecursive returned true when false was expected")
+    return try {
+      client.deleteBucketRecursive(BucketName("something"))
+      Log.succeed()
     } catch (e: Throwable) {
-      return Log.fail(e)
+      Log.fail(e)
     }
-
-    return Log.succeed()
   }
 
   private fun testRecursiveDeleteWithEmptyBucket(): Boolean {
@@ -430,8 +430,15 @@ class ClientTest(
 
     Log.debug("Attempting to delete empty bucket '{}'", bucketName)
     try {
-      if (!client.deleteBucketRecursive(BucketName(bucketName)))
-        return Log.fail("deleteBucketRecursive returned false when true was expected")
+      client.deleteBucketRecursive(BucketName(bucketName))
+    } catch (e: Throwable) {
+      return Log.fail(e)
+    }
+
+    Log.debug("Verifying bucket was deleted.")
+    try {
+      if (minio.bucketExists(bucketName))
+        return Log.fail("Bucket was not deleted when it should have been")
     } catch (e: Throwable) {
       return Log.fail(e)
     }
@@ -489,15 +496,14 @@ class ClientTest(
 
     Log.debug("Attempting to recursively delete non-empty bucket '{}'", bucketName)
     try {
-      if (!client.deleteBucketRecursive(BucketName(bucketName)))
-        return Log.fail("deleteBucketRecursive returned false when true was expected")
+      client.deleteBucketRecursive(BucketName(bucketName))
     } catch (e: Throwable) {
       return Log.fail(e)
     }
 
     Log.debug("Verifying bucket was deleted.")
     try {
-      if (minio.listBuckets().isNotEmpty())
+      if (minio.bucketExists(bucketName))
         return Log.fail("Bucket was not deleted when it should have been")
     } catch (e: Throwable) {
       return Log.fail(e)
