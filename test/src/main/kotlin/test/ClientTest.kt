@@ -234,7 +234,7 @@ class ClientTest(
       val name = BucketName("bucket-name")
 
       try {
-        if(client.buckets[name] != null)
+        if(client.buckets[name] == null)
           Log.succeed()
         else
           Log.fail("Expected getBucket to return null but it did not.")

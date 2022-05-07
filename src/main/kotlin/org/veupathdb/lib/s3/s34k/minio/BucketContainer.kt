@@ -54,7 +54,7 @@ internal class BucketContainer(
 
   override fun deleteRecursive(name: BucketName, params: RecursiveBucketDeleteParams) {
     log.debug("Attempting to recursively delete bucket '{}'", name)
-    RecursiveBucketDeleter(name, client.defaultRegion, params, minio)
+    RecursiveBucketDeleter(name, client.defaultRegion, params, minio).execute()
   }
 
   override fun exists(name: BucketName, params: BucketExistsParams): Boolean {
