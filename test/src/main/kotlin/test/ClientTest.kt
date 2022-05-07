@@ -234,10 +234,10 @@ class ClientTest(
       val name = BucketName("bucket-name")
 
       try {
-        client.buckets[name]
-        Log.fail("Expected getBucket to fail with a BucketNotFoundException but it did not.")
-      } catch (e: BucketNotFoundError) {
-        Log.succeed()
+        if(client.buckets[name] != null)
+          Log.succeed()
+        else
+          Log.fail("Expected getBucket to return null but it did not.")
       } catch (e: Throwable) {
         Log.fail(e)
       }

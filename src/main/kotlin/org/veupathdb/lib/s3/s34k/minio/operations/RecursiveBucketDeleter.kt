@@ -80,7 +80,7 @@ internal class RecursiveBucketDeleter(
         .queryParams(params.queryParams, params.bucketDelete.queryParams)
         .build())
     } catch (e: Throwable) {
-      throw BucketDeleteError(bucket, e)
+      e.throwCorrect { "Failed to delete bucket '$bucket'" }
     }
   }
 }
