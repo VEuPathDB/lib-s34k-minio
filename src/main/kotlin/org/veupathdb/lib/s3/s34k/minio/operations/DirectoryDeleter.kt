@@ -10,7 +10,6 @@ import org.veupathdb.lib.s3.s34k.S3ErrorCode
 import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
 import org.veupathdb.lib.s3.s34k.errors.MultiObjectDeleteError
 import org.veupathdb.lib.s3.s34k.errors.ObjectDeleteError
-import org.veupathdb.lib.s3.s34k.errors.ObjectListError
 import org.veupathdb.lib.s3.s34k.errors.S34KError
 import org.veupathdb.lib.s3.s34k.minio.util.*
 import org.veupathdb.lib.s3.s34k.params.`object`.directory.*
@@ -46,7 +45,7 @@ internal class DirectoryDeleter(
 
       return res
     } catch (e: Throwable) {
-      throw ObjectListError(bucket.name, e)
+      e.throwCorrect { "Failed to list objects in bucket '$bucket'" }
     }
   }
 

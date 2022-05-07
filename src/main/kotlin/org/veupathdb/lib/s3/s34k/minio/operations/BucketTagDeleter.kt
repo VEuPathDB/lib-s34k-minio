@@ -9,6 +9,7 @@ import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
 import org.veupathdb.lib.s3.s34k.errors.BucketTagDeleteError
 import org.veupathdb.lib.s3.s34k.errors.BucketTagGetError
 import org.veupathdb.lib.s3.s34k.errors.BucketTagPutError
+import org.veupathdb.lib.s3.s34k.minio.util.*
 import org.veupathdb.lib.s3.s34k.minio.util.bucket
 import org.veupathdb.lib.s3.s34k.minio.util.headers
 import org.veupathdb.lib.s3.s34k.minio.util.queryParams
@@ -111,7 +112,7 @@ internal class BucketTagDeleter(
         .queryParams(params.queryParams, params.getParams.queryParams)
         .build()).get()
     } catch (e: Throwable) {
-      throw BucketTagGetError(bucket.name, e)
+      e.throwCorrect { "Failed to get tags for bucket '$bucket'" }
     }
   }
 

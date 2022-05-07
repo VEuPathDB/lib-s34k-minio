@@ -4,8 +4,6 @@ import io.minio.MinioClient
 import io.minio.PutObjectArgs
 import io.minio.StatObjectArgs
 import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
-import org.veupathdb.lib.s3.s34k.errors.ObjectGetError
-import org.veupathdb.lib.s3.s34k.errors.ObjectPutError
 import org.veupathdb.lib.s3.s34k.minio.MObject
 import org.veupathdb.lib.s3.s34k.minio.fields.MHeaders
 import org.veupathdb.lib.s3.s34k.minio.util.*
@@ -20,10 +18,12 @@ internal class ObjectToucher(
 ) {
   fun execute(): S3Object {
 
-    var out = get()
+    val out: S3Object
 
-    if (out == null || params.overwrite) {
+    if (params.overwrite) {
       out = put()
+    } else {
+      out = get() ?: put()
     }
 
     params.callback?.invoke(out)
@@ -56,7 +56,7 @@ internal class ObjectToucher(
         return null
       }
 
-      throw ObjectGetError(bucket.name, path, e)
+      e.throwCorrect { "Failed ot get object '$path' from $bucket" }
     }
   }
 
@@ -81,7 +81,7 @@ internal class ObjectToucher(
         minio,
       )
     } catch (e: Throwable) {
-      throw ObjectPutError(bucket.name, path, e)
+      e.throwCorrect { "Failed to put object '$path' into '$bucket'" }
     }
   }
 }

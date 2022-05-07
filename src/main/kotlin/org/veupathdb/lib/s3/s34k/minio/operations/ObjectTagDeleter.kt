@@ -5,8 +5,7 @@ import io.minio.GetObjectTagsArgs
 import io.minio.MinioClient
 import io.minio.SetObjectTagsArgs
 import org.slf4j.LoggerFactory
-import org.veupathdb.lib.s3.s34k.errors.ObjectTagDeleteError
-import org.veupathdb.lib.s3.s34k.errors.ObjectTagGetError
+import org.veupathdb.lib.s3.s34k.minio.util.*
 import org.veupathdb.lib.s3.s34k.minio.util.bucket
 import org.veupathdb.lib.s3.s34k.minio.util.headers
 import org.veupathdb.lib.s3.s34k.minio.util.queryParams
@@ -112,7 +111,7 @@ internal class ObjectTagDeleter(
         // TODO: Version ID
         .build()).get()
     } catch (e: Throwable) {
-      throw ObjectTagGetError(handle.bucket.name, handle.path, e)
+      e.throwCorrect { "Failed to get tags for $handle" }
     }
   }
 
@@ -129,7 +128,7 @@ internal class ObjectTagDeleter(
         // TODO: Version ID
         .build())
     } catch (e: Throwable) {
-      throw ObjectTagDeleteError(handle.bucket.name, handle.path, e)
+      e.throwCorrect { "Failed to delete all tags from $handle" }
     }
   }
 
@@ -146,7 +145,7 @@ internal class ObjectTagDeleter(
         // TODO: Version ID
         .build())
     } catch (e: Throwable) {
-      throw ObjectTagDeleteError(handle.bucket.name, handle.path, e)
+      e.throwCorrect { "Failed to put tags onto $handle" }
     }
   }
 }

@@ -1,8 +1,8 @@
 package test
 
 import org.slf4j.LoggerFactory
-import org.veupathdb.lib.s3.s34k.Bucket
 import org.veupathdb.lib.s3.s34k.S3Client
+import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
 import org.veupathdb.lib.s3.s34k.errors.BucketNotEmptyError
 
 class BucketTest(private val client: S3Client) {
@@ -104,7 +104,7 @@ class BucketTest(private val client: S3Client) {
 
   // region Delete Bucket
 
-  private fun deleteBucketWhenExists(bucket: Bucket): Boolean {
+  private fun deleteBucketWhenExists(bucket: S3Bucket): Boolean {
     Log.debug("Attempting to delete bucket '{}'.", bucket.name)
     try {
       bucket.delete()
@@ -123,7 +123,7 @@ class BucketTest(private val client: S3Client) {
     return Log.succeed()
   }
 
-  private fun deleteBucketWhenNotExists(bucket: Bucket): Boolean {
+  private fun deleteBucketWhenNotExists(bucket: S3Bucket): Boolean {
 
     Log.debug("Setup: pre-deleting bucket.")
     try {
@@ -142,7 +142,7 @@ class BucketTest(private val client: S3Client) {
     return Log.succeed()
   }
 
-  private fun deleteBucketWhenNotEmpty(bucket: Bucket): Boolean {
+  private fun deleteBucketWhenNotEmpty(bucket: S3Bucket): Boolean {
     Log.debug("Setup: Putting objects into the target bucket")
     try {
       bucket.objects.put("test/object/1.txt", "hello".byteInputStream())

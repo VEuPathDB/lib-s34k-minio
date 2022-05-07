@@ -6,10 +6,7 @@ import io.minio.MinioClient
 import io.minio.SetBucketTagsArgs
 import org.slf4j.LoggerFactory
 import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
-import org.veupathdb.lib.s3.s34k.errors.BucketGetError
 import org.veupathdb.lib.s3.s34k.errors.BucketNotFoundError
-import org.veupathdb.lib.s3.s34k.errors.BucketPutError
-import org.veupathdb.lib.s3.s34k.errors.BucketTagPutError
 import org.veupathdb.lib.s3.s34k.fields.BucketName
 import org.veupathdb.lib.s3.s34k.minio.util.*
 import org.veupathdb.lib.s3.s34k.params.bucket.put.BucketUpsertParams
@@ -55,7 +52,7 @@ internal object BucketUpsert {
       if (e.isBucketConflict())
         return false
 
-      throw BucketPutError(bucket, e)
+      e.throwCorrect { "Failed to put bucket '$bucket'" }
     }
 
     return true
@@ -80,7 +77,7 @@ internal object BucketUpsert {
 
       params.tagPutParams.callback?.invoke()
     } catch (e: Throwable) {
-      throw BucketTagPutError(bucket, e)
+      e.throwCorrect { "Failed to put tags onto bucket '$bucket'" }
     }
   }
 
@@ -94,7 +91,7 @@ internal object BucketUpsert {
         .build())
         .hunt(bucket, params.region ?: region, minio)
     } catch (e: Throwable) {
-      throw BucketGetError(bucket, e)
+      e.throwCorrect { "Failed to get bucket '$bucket'" }
     }
   }
 }

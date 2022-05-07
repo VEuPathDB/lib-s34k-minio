@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory
 import org.veupathdb.lib.s3.s34k.errors.BucketDeleteError
 import org.veupathdb.lib.s3.s34k.errors.MultiObjectDeleteError
 import org.veupathdb.lib.s3.s34k.errors.ObjectDeleteError
-import org.veupathdb.lib.s3.s34k.errors.ObjectListError
 import org.veupathdb.lib.s3.s34k.fields.BucketName
 import org.veupathdb.lib.s3.s34k.minio.util.*
 import org.veupathdb.lib.s3.s34k.params.bucket.recursive.RecursiveBucketDeleteParams
@@ -42,7 +41,7 @@ internal class RecursiveBucketDeleter(
         .map(Result<Item>::get)
         .map(Item::objectName)
     } catch (e: Throwable) {
-      throw ObjectListError(bucket, e)
+      e.throwCorrect { "Failed to list objects in bucket '$bucket'" }
     }
 
   }
