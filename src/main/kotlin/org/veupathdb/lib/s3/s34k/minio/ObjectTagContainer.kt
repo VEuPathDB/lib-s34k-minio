@@ -31,7 +31,7 @@ internal class ObjectTagContainer(
 
       return out
     } catch (e: Throwable) {
-      throw e.throwCorrect { "Failed to test for tag existence for $handle" }
+      e.throwCorrect { "Failed to test for tag existence for $handle" }
     }
   }
 
@@ -45,7 +45,7 @@ internal class ObjectTagContainer(
 
       return out
     } catch (e: Throwable) {
-      throw e.throwCorrect { "Failed to count tags for $handle" }
+      e.throwCorrect { "Failed to count tags for $handle" }
     }
   }
 
@@ -66,7 +66,7 @@ internal class ObjectTagContainer(
         // TODO: Version ID
         .build())
     } catch (e: Throwable) {
-      throw e.throwCorrect { "Failed to delete all tags from $handle" }
+      e.throwCorrect { "Failed to delete all tags from $handle" }
     }
   }
 
@@ -81,7 +81,7 @@ internal class ObjectTagContainer(
 
       return res[key]
     } catch (e: Throwable) {
-      throw e.throwCorrect {
+      e.throwCorrect {
         "Failed to get object tag '$key' for object '${handle.path}' in bucket '${handle.bucket.name}'"
       }
     }
@@ -110,7 +110,7 @@ internal class ObjectTagContainer(
 
       return out
     } catch (e: Throwable) {
-      throw e.throwCorrect { "Failed to get tags for $handle" }
+      e.throwCorrect { "Failed to get tags for $handle" }
     }
   }
 
@@ -125,7 +125,7 @@ internal class ObjectTagContainer(
 
       return BasicTagMap(res)
     } catch (e: Throwable) {
-      throw e.throwCorrect { "Failed to get all tags for $handle" }
+      e.throwCorrect { "Failed to get all tags for $handle" }
     }
   }
 
@@ -150,7 +150,7 @@ internal class ObjectTagContainer(
 
       params.callback?.invoke()
     } catch (e: Throwable) {
-      throw e.throwCorrect { "Failed to put tags onto $handle" }
+      e.throwCorrect { "Failed to put tags onto $handle" }
     }
   }
 

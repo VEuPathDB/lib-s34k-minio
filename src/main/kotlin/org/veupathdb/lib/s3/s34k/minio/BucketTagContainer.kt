@@ -29,7 +29,7 @@ internal class BucketTagContainer(
       params.callback?.invoke(out)
       return out
     } catch (e: Throwable) {
-      throw e.throwCorrect { "Failed to test for tag '$key' on $bucket" }
+      e.throwCorrect { "Failed to test for tag '$key' on $bucket" }
     }
   }
 
@@ -40,7 +40,7 @@ internal class BucketTagContainer(
       params.callback?.invoke(out)
       return out
     } catch (e: Throwable) {
-      throw e.throwCorrect { "Failed to get tag count for $bucket" }
+      e.throwCorrect { "Failed to get tag count for $bucket" }
     }
   }
 
@@ -60,7 +60,7 @@ internal class BucketTagContainer(
         .build())
       params.callback?.invoke()
     } catch (e: Throwable) {
-      throw e.throwCorrect { "Failed to delete all tags from $bucket" }
+      e.throwCorrect { "Failed to delete all tags from $bucket" }
     }
   }
 
@@ -74,7 +74,7 @@ internal class BucketTagContainer(
 
       return res[key]
     } catch (e: Throwable) {
-      throw e.throwCorrect { "Failed to look up tag '$key' from $bucket" }
+      e.throwCorrect { "Failed to look up tag '$key' from $bucket" }
     }
   }
 
@@ -93,7 +93,7 @@ internal class BucketTagContainer(
       params.callback?.invoke(out)
       return out
     } catch (e: Throwable) {
-      throw e.throwCorrect { "Failed to fetch target tags from $bucket" }
+      e.throwCorrect { "Failed to fetch target tags from $bucket" }
     }
   }
 
@@ -105,7 +105,7 @@ internal class BucketTagContainer(
         .region(bucket)
         .build()).get())
     } catch (e: Throwable) {
-      throw e.throwCorrect { "Failed to fetch all tags from $bucket" }
+      e.throwCorrect { "Failed to fetch all tags from $bucket" }
     }
   }
 
@@ -125,7 +125,7 @@ internal class BucketTagContainer(
 
       params.callback?.invoke()
     } catch (e: Throwable) {
-      throw e.throwCorrect { "Failed to set tags on $bucket" }
+      e.throwCorrect { "Failed to set tags on $bucket" }
     }
   }
 

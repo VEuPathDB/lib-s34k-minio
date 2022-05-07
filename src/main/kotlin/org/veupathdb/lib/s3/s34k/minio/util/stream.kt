@@ -19,7 +19,7 @@ internal class StreamIterable<T>(private val stream: Stream<T>): Iterable<T> {
 
 internal fun InputStream.pipeTo(out: OutputStream, bufSize: Int = 8192) {
   val buffer = ByteArray(bufSize)
-  var red = 0
+  var red: Int
 
   do {
     red = read(buffer)

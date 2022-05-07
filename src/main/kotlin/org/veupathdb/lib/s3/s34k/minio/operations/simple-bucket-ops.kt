@@ -24,7 +24,7 @@ internal fun BucketDelete(
       .build())
   } catch (e: Throwable) {
     if (!e.isNoSuchBucket())
-      throw e.throwCorrect { "Failed to remove bucket '$name'" }
+      e.throwCorrect { "Failed to remove bucket '$name'" }
   }
 
   params.callback?.invoke()

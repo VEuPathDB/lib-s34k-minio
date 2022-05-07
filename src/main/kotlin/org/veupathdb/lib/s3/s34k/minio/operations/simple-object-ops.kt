@@ -26,7 +26,7 @@ internal fun ObjectDelete(bucket: Bucket, path: String, params: DeleteParams, mi
       .build())
   } catch (e: Throwable) {
     if (!e.isNoSuchKey())
-      throw e.throwCorrect { "Failed to delete object '$path' from $bucket" }
+      e.throwCorrect { "Failed to delete object '$path' from $bucket" }
   }
 
   params.callback?.invoke()
@@ -51,7 +51,7 @@ internal fun ObjectExists(bucket: Bucket, path: String, params: ObjectExistsPara
       return false
     }
 
-    throw e.throwCorrect { "Failed to test if object '$path' exists in $bucket" }
+    e.throwCorrect { "Failed to test if object '$path' exists in $bucket" }
   }
 }
 
@@ -93,6 +93,6 @@ internal fun StatObject(
       return null
     }
 
-    throw e.throwCorrect { "Failed to stat object $path in $bucket" }
+    e.throwCorrect { "Failed to stat object $path in $bucket" }
   }
 }

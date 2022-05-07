@@ -1,3 +1,5 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package org.veupathdb.lib.s3.s34k.minio.util
 
 internal inline fun String.isRoot() =
