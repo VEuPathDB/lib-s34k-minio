@@ -5,6 +5,7 @@ import io.minio.messages.Item
 import io.minio.messages.DeleteObject
 import org.slf4j.LoggerFactory
 import org.veupathdb.lib.s3.s34k.errors.BucketDeleteError
+import org.veupathdb.lib.s3.s34k.errors.BucketNotFoundError
 import org.veupathdb.lib.s3.s34k.errors.MultiObjectDeleteError
 import org.veupathdb.lib.s3.s34k.errors.ObjectDeleteError
 import org.veupathdb.lib.s3.s34k.fields.BucketName
@@ -22,8 +23,12 @@ internal class RecursiveBucketDeleter(
   private val log = LoggerFactory.getLogger(this::class.java)
 
   fun execute() {
-    deleteObjects(listObjects())
-    deleteBucket()
+    try {
+      deleteObjects(listObjects())
+      deleteBucket()
+    } catch (e: BucketNotFoundError) {
+      // do nothing
+    }
   }
 
   private fun listObjects(): Stream<String> {
