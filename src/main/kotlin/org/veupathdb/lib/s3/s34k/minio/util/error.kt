@@ -56,8 +56,8 @@ internal inline fun Throwable.throwCorrect(msg: () -> String): Nothing {
   throw when (res.code()) {
     S3ErrorCode.NoSuchBucket            -> BucketNotFoundError(BucketName(res.bucketName()), this)
     S3ErrorCode.NoSuchKey               -> ObjectNotFoundError(BucketName(res.bucketName()), res.objectName(), this)
-    S3ErrorCode.BucketNotEmpty          -> BucketNotEmptyException(BucketName(res.bucketName()), this)
-    S3ErrorCode.BucketAlreadyExists     -> BucketAlreadyExistsException(BucketName(res.bucketName()), this)
+    S3ErrorCode.BucketNotEmpty          -> BucketNotEmptyError(BucketName(res.bucketName()), this)
+    S3ErrorCode.BucketAlreadyExists     -> BucketAlreadyExistsError(BucketName(res.bucketName()), this)
     S3ErrorCode.BucketAlreadyOwnedByYou -> BucketAlreadyOwnedByYouError(BucketName(res.bucketName()), this)
     else                                -> S34KError(msg(), this)
   }
