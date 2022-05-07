@@ -1,9 +1,9 @@
 package test
 
 import org.slf4j.LoggerFactory
+import org.veupathdb.lib.s3.s34k.Bucket
 import org.veupathdb.lib.s3.s34k.S3Client
-import org.veupathdb.lib.s3.s34k.errors.BucketNotEmptyException
-import org.veupathdb.lib.s3.s34k.response.bucket.S3Bucket
+import org.veupathdb.lib.s3.s34k.errors.BucketNotEmptyError
 
 class BucketTest(private val client: S3Client) {
 
@@ -104,8 +104,8 @@ class BucketTest(private val client: S3Client) {
 
   // region Delete Bucket
 
-  private fun deleteBucketWhenExists(bucket: S3Bucket): Boolean {
-    Log.debug("Attempting to delete bucket '{}'.", bucket.bucketName)
+  private fun deleteBucketWhenExists(bucket: Bucket): Boolean {
+    Log.debug("Attempting to delete bucket '{}'.", bucket.name)
     try {
       bucket.delete()
     } catch (e: Throwable) {
@@ -114,7 +114,7 @@ class BucketTest(private val client: S3Client) {
 
     Log.debug("Verifying bucket was deleted.")
     try {
-      if (client.bucketExists(bucket.bucketName))
+      if (client.buckets.exists(bucket.name))
         return Log.fail("Bucket was not deleted when it should have been")
     } catch (e: Throwable) {
       return Log.fail(e)
@@ -123,16 +123,16 @@ class BucketTest(private val client: S3Client) {
     return Log.succeed()
   }
 
-  private fun deleteBucketWhenNotExists(bucket: S3Bucket): Boolean {
+  private fun deleteBucketWhenNotExists(bucket: Bucket): Boolean {
 
     Log.debug("Setup: pre-deleting bucket.")
     try {
-      client.deleteBucket(bucket.bucketName)
+      client.buckets.delete(bucket.name)
     } catch (e: Throwable) {
       return Log.fail(e)
     }
 
-    Log.debug("Attempting to delete bucket '{}'", bucket.bucketName)
+    Log.debug("Attempting to delete bucket '{}'", bucket.name)
     try {
       bucket.delete()
     } catch (e: Throwable) {
@@ -142,10 +142,10 @@ class BucketTest(private val client: S3Client) {
     return Log.succeed()
   }
 
-  private fun deleteBucketWhenNotEmpty(bucket: S3Bucket): Boolean {
+  private fun deleteBucketWhenNotEmpty(bucket: Bucket): Boolean {
     Log.debug("Setup: Putting objects into the target bucket")
     try {
-      bucket.putObject("test/object/1.txt", "hello".byteInputStream(), 5)
+      bucket.objects.put("test/object/1.txt", "hello".byteInputStream())
     } catch (e: Throwable) {
       return Log.fail(e)
     }
@@ -154,7 +154,7 @@ class BucketTest(private val client: S3Client) {
     return try {
       bucket.delete()
       Log.fail("Expected Bucket.delete to throw a BucketNotEmptyException, but no exception was thrown.")
-    } catch (e: BucketNotEmptyException) {
+    } catch (e: BucketNotEmptyError) {
       Log.succeed()
     } catch (e: Throwable) {
       Log.fail(e)

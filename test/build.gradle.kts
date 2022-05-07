@@ -26,7 +26,7 @@ dependencies {
   implementation(kotlin("stdlib-jdk8"))
   implementation("org.slf4j:slf4j-api:1.7.36")
 
-  implementation("org.veupathdb.lib.s3:s34k-minio:0.3.0-SNAPSHOT") { isChanging = true }
+  implementation("org.veupathdb.lib.s3:s34k-minio:0.1.0-SNAPSHOT") { isChanging = true }
 
   implementation("org.apache.logging.log4j:log4j-core:2.17.2")
   implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.2")
