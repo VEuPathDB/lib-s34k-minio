@@ -5,8 +5,8 @@ import io.minio.GetBucketTagsArgs
 import io.minio.MinioClient
 import io.minio.SetBucketTagsArgs
 import org.slf4j.LoggerFactory
-import org.veupathdb.lib.s3.s34k.Bucket
-import org.veupathdb.lib.s3.s34k.core.AbstractBucketTagContainer
+import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
+import org.veupathdb.lib.s3.s34k.core.buckets.AbstractBucketTagContainer
 import org.veupathdb.lib.s3.s34k.core.fields.BasicTagMap
 import org.veupathdb.lib.s3.s34k.fields.TagMap
 import org.veupathdb.lib.s3.s34k.minio.operations.BucketTagDeleter
@@ -16,7 +16,7 @@ import org.veupathdb.lib.s3.s34k.params.bucket.tag.TargetedBucketTagDeleteParams
 import org.veupathdb.lib.s3.s34k.params.tag.*
 
 internal class BucketTagContainer(
-  private val bucket: Bucket,
+  private val bucket: S3Bucket,
   private val client: MinioClient
 ) : AbstractBucketTagContainer() {
 

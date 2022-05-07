@@ -4,13 +4,13 @@ import io.minio.*
 import io.minio.messages.Item
 import io.minio.messages.DeleteObject
 import org.slf4j.LoggerFactory
-import org.veupathdb.lib.s3.s34k.BucketName
+import org.veupathdb.lib.s3.s34k.errors.BucketDeleteError
+import org.veupathdb.lib.s3.s34k.errors.MultiObjectDeleteError
+import org.veupathdb.lib.s3.s34k.errors.ObjectDeleteError
+import org.veupathdb.lib.s3.s34k.errors.ObjectListError
+import org.veupathdb.lib.s3.s34k.fields.BucketName
 import org.veupathdb.lib.s3.s34k.minio.util.*
-import org.veupathdb.lib.s3.s34k.params.bucket.recursive.RecursiveBucketDeleteError
-import org.veupathdb.lib.s3.s34k.params.bucket.recursive.RecursiveBucketDeleteObjectDeleteError
 import org.veupathdb.lib.s3.s34k.params.bucket.recursive.RecursiveBucketDeleteParams
-import org.veupathdb.lib.s3.s34k.params.bucket.recursive.RecursiveDeletePhase
-import org.veupathdb.lib.s3.s34k.params.`object`.ObjectDeleteError
 import java.util.stream.Stream
 
 internal class RecursiveBucketDeleter(
@@ -42,7 +42,7 @@ internal class RecursiveBucketDeleter(
         .map(Result<Item>::get)
         .map(Item::objectName)
     } catch (e: Throwable) {
-      throw RecursiveBucketDeleteError(bucket, RecursiveDeletePhase.ListObjects, params, e)
+      throw ObjectListError(bucket, e)
     }
 
   }
@@ -66,12 +66,9 @@ internal class RecursiveBucketDeleter(
       }
 
       if (errs.isNotEmpty())
-        throw RecursiveBucketDeleteObjectDeleteError(bucket, params, errs)
+        throw MultiObjectDeleteError(bucket, errs)
     } catch (e: Throwable) {
-      if (e !is RecursiveBucketDeleteError)
-        throw RecursiveBucketDeleteError(bucket, RecursiveDeletePhase.DeleteObjects, params, e)
-      else
-        throw e
+      e.throwCorrect { "Failed to delete objects from bucket '$bucket'" }
     }
   }
 
@@ -84,7 +81,7 @@ internal class RecursiveBucketDeleter(
         .queryParams(params.queryParams, params.bucketDelete.queryParams)
         .build())
     } catch (e: Throwable) {
-      throw RecursiveBucketDeleteError(bucket, RecursiveDeletePhase.DeleteBucket, params, e)
+      throw BucketDeleteError(bucket, e)
     }
   }
 }

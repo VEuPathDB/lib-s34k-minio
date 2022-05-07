@@ -5,17 +5,18 @@ import io.minio.GetBucketTagsArgs
 import io.minio.MinioClient
 import io.minio.SetBucketTagsArgs
 import org.slf4j.LoggerFactory
-import org.veupathdb.lib.s3.s34k.Bucket
+import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
+import org.veupathdb.lib.s3.s34k.errors.BucketTagDeleteError
+import org.veupathdb.lib.s3.s34k.errors.BucketTagGetError
+import org.veupathdb.lib.s3.s34k.errors.BucketTagPutError
 import org.veupathdb.lib.s3.s34k.minio.util.bucket
 import org.veupathdb.lib.s3.s34k.minio.util.headers
 import org.veupathdb.lib.s3.s34k.minio.util.queryParams
 import org.veupathdb.lib.s3.s34k.minio.util.region
-import org.veupathdb.lib.s3.s34k.params.bucket.tag.TargetedBucketTagDeleteError
 import org.veupathdb.lib.s3.s34k.params.bucket.tag.TargetedBucketTagDeleteParams
-import org.veupathdb.lib.s3.s34k.params.bucket.tag.TargetedBucketTagDeletePhase
 
 internal class BucketTagDeleter(
-  private val bucket: Bucket,
+  private val bucket: S3Bucket,
   private val client: MinioClient,
   private val params: TargetedBucketTagDeleteParams,
 ) {
@@ -110,7 +111,7 @@ internal class BucketTagDeleter(
         .queryParams(params.queryParams, params.getParams.queryParams)
         .build()).get()
     } catch (e: Throwable) {
-      throw TargetedBucketTagDeleteError(bucket, TargetedBucketTagDeletePhase.Get, params, e)
+      throw BucketTagGetError(bucket.name, e)
     }
   }
 
@@ -125,7 +126,7 @@ internal class BucketTagDeleter(
         .queryParams(params.queryParams, params.deleteParams.queryParams)
         .build())
     } catch (e: Throwable) {
-      throw TargetedBucketTagDeleteError(bucket, TargetedBucketTagDeletePhase.Delete, params, e)
+      throw BucketTagDeleteError(bucket.name, e)
     }
   }
 
@@ -140,7 +141,7 @@ internal class BucketTagDeleter(
         .queryParams(params.queryParams, params.putParams.queryParams)
         .build())
     } catch (e: Throwable) {
-      throw TargetedBucketTagDeleteError(bucket, TargetedBucketTagDeletePhase.Put, params, e)
+      throw BucketTagPutError(bucket.name, e)
     }
   }
 }

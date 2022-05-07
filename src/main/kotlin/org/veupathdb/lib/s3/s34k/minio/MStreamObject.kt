@@ -1,9 +1,9 @@
 package org.veupathdb.lib.s3.s34k.minio
 
 import io.minio.MinioClient
-import org.veupathdb.lib.s3.s34k.Bucket
-import org.veupathdb.lib.s3.s34k.StreamObject
+import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
 import org.veupathdb.lib.s3.s34k.fields.Headers
+import org.veupathdb.lib.s3.s34k.objects.StreamObject
 import java.io.InputStream
 
 internal class MStreamObject(
@@ -11,7 +11,7 @@ internal class MStreamObject(
   region: String?,
   override val stream: InputStream,
   headers: Headers,
-  bucket: Bucket,
+  bucket: S3Bucket,
   client: MinioClient
 ) : StreamObject, MObject(path, region ,headers, bucket, client) {
   override fun close() = stream.close()

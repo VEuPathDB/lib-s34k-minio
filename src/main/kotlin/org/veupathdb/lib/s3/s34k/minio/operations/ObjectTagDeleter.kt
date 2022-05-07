@@ -5,14 +5,14 @@ import io.minio.GetObjectTagsArgs
 import io.minio.MinioClient
 import io.minio.SetObjectTagsArgs
 import org.slf4j.LoggerFactory
-import org.veupathdb.lib.s3.s34k.S3Object
+import org.veupathdb.lib.s3.s34k.errors.ObjectTagDeleteError
+import org.veupathdb.lib.s3.s34k.errors.ObjectTagGetError
 import org.veupathdb.lib.s3.s34k.minio.util.bucket
 import org.veupathdb.lib.s3.s34k.minio.util.headers
 import org.veupathdb.lib.s3.s34k.minio.util.queryParams
 import org.veupathdb.lib.s3.s34k.minio.util.region
+import org.veupathdb.lib.s3.s34k.objects.S3Object
 import org.veupathdb.lib.s3.s34k.params.tag.TagDeleteParams
-import org.veupathdb.lib.s3.s34k.params.tag.TargetedTagDeleteError
-import org.veupathdb.lib.s3.s34k.params.tag.TargetedTagDeletePhase
 
 internal class ObjectTagDeleter(
   private val handle: S3Object,
@@ -112,7 +112,7 @@ internal class ObjectTagDeleter(
         // TODO: Version ID
         .build()).get()
     } catch (e: Throwable) {
-      throw TargetedTagDeleteError(handle, TargetedTagDeletePhase.Get, params, e)
+      throw ObjectTagGetError(handle.bucket.name, handle.path, e)
     }
   }
 
@@ -129,7 +129,7 @@ internal class ObjectTagDeleter(
         // TODO: Version ID
         .build())
     } catch (e: Throwable) {
-      throw TargetedTagDeleteError(handle, TargetedTagDeletePhase.Delete, params, e)
+      throw ObjectTagDeleteError(handle.bucket.name, handle.path, e)
     }
   }
 
@@ -146,7 +146,7 @@ internal class ObjectTagDeleter(
         // TODO: Version ID
         .build())
     } catch (e: Throwable) {
-      throw TargetedTagDeleteError(handle, TargetedTagDeletePhase.Put, params, e)
+      throw ObjectTagDeleteError(handle.bucket.name, handle.path, e)
     }
   }
 }

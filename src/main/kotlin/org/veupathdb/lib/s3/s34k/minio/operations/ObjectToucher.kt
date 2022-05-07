@@ -3,21 +3,17 @@ package org.veupathdb.lib.s3.s34k.minio.operations
 import io.minio.MinioClient
 import io.minio.PutObjectArgs
 import io.minio.StatObjectArgs
-import org.veupathdb.lib.s3.s34k.Bucket
-import org.veupathdb.lib.s3.s34k.S3Object
+import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
+import org.veupathdb.lib.s3.s34k.errors.ObjectGetError
+import org.veupathdb.lib.s3.s34k.errors.ObjectPutError
 import org.veupathdb.lib.s3.s34k.minio.MObject
 import org.veupathdb.lib.s3.s34k.minio.fields.MHeaders
 import org.veupathdb.lib.s3.s34k.minio.util.*
-import org.veupathdb.lib.s3.s34k.minio.util.bucket
-import org.veupathdb.lib.s3.s34k.minio.util.headers
-import org.veupathdb.lib.s3.s34k.minio.util.queryParams
-import org.veupathdb.lib.s3.s34k.minio.util.region
-import org.veupathdb.lib.s3.s34k.params.`object`.touch.ObjectTouchError
+import org.veupathdb.lib.s3.s34k.objects.S3Object
 import org.veupathdb.lib.s3.s34k.params.`object`.touch.ObjectTouchParams
-import org.veupathdb.lib.s3.s34k.params.`object`.touch.ObjectTouchPhase
 
 internal class ObjectToucher(
-  private val bucket: Bucket,
+  private val bucket: S3Bucket,
   private val path:   String,
   private val params: ObjectTouchParams,
   private val minio:  MinioClient,
@@ -60,7 +56,7 @@ internal class ObjectToucher(
         return null
       }
 
-      throw ObjectTouchError(bucket.name, path, ObjectTouchPhase.GetObject, e)
+      throw ObjectGetError(bucket.name, path, e)
     }
   }
 
@@ -85,7 +81,7 @@ internal class ObjectToucher(
         minio,
       )
     } catch (e: Throwable) {
-      throw ObjectTouchError(bucket.name, path, ObjectTouchPhase.GetObject, e)
+      throw ObjectPutError(bucket.name, path, e)
     }
   }
 }

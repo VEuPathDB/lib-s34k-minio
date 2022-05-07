@@ -1,21 +1,15 @@
 package org.veupathdb.lib.s3.s34k.minio
 
 import io.minio.MinioClient
-import io.minio.RemoveObjectArgs
-import io.minio.StatObjectArgs
 import org.slf4j.LoggerFactory
-import org.veupathdb.lib.s3.s34k.Bucket
-import org.veupathdb.lib.s3.s34k.ObjectMeta
-import org.veupathdb.lib.s3.s34k.core.AbstractS3Object
-import org.veupathdb.lib.s3.s34k.core.BasicObjectMeta
+import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
+import org.veupathdb.lib.s3.s34k.core.objects.AbstractS3Object
 import org.veupathdb.lib.s3.s34k.fields.Headers
-import org.veupathdb.lib.s3.s34k.minio.fields.MHeaders
 import org.veupathdb.lib.s3.s34k.minio.operations.ObjectDelete
 import org.veupathdb.lib.s3.s34k.minio.operations.ObjectExists
 import org.veupathdb.lib.s3.s34k.minio.operations.StatObject
-import org.veupathdb.lib.s3.s34k.minio.util.*
+import org.veupathdb.lib.s3.s34k.objects.ObjectMeta
 import org.veupathdb.lib.s3.s34k.params.DeleteParams
-import org.veupathdb.lib.s3.s34k.params.ExistsParams
 import org.veupathdb.lib.s3.s34k.params.`object`.ObjectExistsParams
 import org.veupathdb.lib.s3.s34k.params.`object`.ObjectStatParams
 
@@ -23,7 +17,7 @@ internal open class MObject(
   path:    String,
   region:  String?,
   headers: Headers,
-  bucket:  Bucket,
+  bucket: S3Bucket,
 
   private val client: MinioClient,
 ) : AbstractS3Object(path, region, headers, bucket) {
@@ -33,7 +27,7 @@ internal open class MObject(
   // suppressed because ObjectTagContainer constructor doesn't do anything with
   // the reference, so it is safe to pass down.
   @Suppress("LeakingThis")
-  override val tags: ObjectTagContainer = ObjectTagContainer(this, client)
+  override val tags = ObjectTagContainer(this, client)
 
 
   override fun delete(params: DeleteParams) {

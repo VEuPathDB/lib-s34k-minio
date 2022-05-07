@@ -5,19 +5,20 @@ import io.minio.MakeBucketArgs
 import io.minio.MinioClient
 import io.minio.SetBucketTagsArgs
 import org.slf4j.LoggerFactory
-import org.veupathdb.lib.s3.s34k.Bucket
-import org.veupathdb.lib.s3.s34k.BucketName
+import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
+import org.veupathdb.lib.s3.s34k.errors.BucketGetError
 import org.veupathdb.lib.s3.s34k.errors.BucketNotFoundError
+import org.veupathdb.lib.s3.s34k.errors.BucketPutError
+import org.veupathdb.lib.s3.s34k.errors.BucketTagPutError
+import org.veupathdb.lib.s3.s34k.fields.BucketName
 import org.veupathdb.lib.s3.s34k.minio.util.*
-import org.veupathdb.lib.s3.s34k.params.bucket.put.BucketPutError
 import org.veupathdb.lib.s3.s34k.params.bucket.put.BucketUpsertParams
-import org.veupathdb.lib.s3.s34k.params.bucket.put.BucketPutPhase
 
 internal object BucketUpsert {
 
   private val log = LoggerFactory.getLogger(this::class.java)
 
-  fun execute(bucket: BucketName, params: BucketUpsertParams, region: String?, minio: MinioClient): Bucket {
+  fun execute(bucket: BucketName, params: BucketUpsertParams, region: String?, minio: MinioClient): S3Bucket {
     // If we just created the bucket _or_ if the put tags on collision parameter
     // is set.
     //
@@ -54,7 +55,7 @@ internal object BucketUpsert {
       if (e.isBucketConflict())
         return false
 
-      throw BucketPutError(bucket, BucketPutPhase.PutBucket, e)
+      throw BucketPutError(bucket, e)
     }
 
     return true
@@ -79,11 +80,11 @@ internal object BucketUpsert {
 
       params.tagPutParams.callback?.invoke()
     } catch (e: Throwable) {
-      throw BucketPutError(bucket, BucketPutPhase.PutTags, e)
+      throw BucketTagPutError(bucket, e)
     }
   }
 
-  private fun getBucket(bucket: BucketName, params: BucketUpsertParams, region: String?, minio: MinioClient): Bucket? {
+  private fun getBucket(bucket: BucketName, params: BucketUpsertParams, region: String?, minio: MinioClient): S3Bucket? {
     log.debug("Retrieving bucket '{}'", bucket)
 
     try {
@@ -93,7 +94,7 @@ internal object BucketUpsert {
         .build())
         .hunt(bucket, params.region ?: region, minio)
     } catch (e: Throwable) {
-      throw BucketPutError(bucket, BucketPutPhase.GetBucket, e)
+      throw BucketGetError(bucket, e)
     }
   }
 }

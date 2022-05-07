@@ -8,11 +8,11 @@ import io.minio.ListObjectsArgs
 import io.minio.ObjectArgs
 import io.minio.PutObjectArgs
 import io.minio.UploadObjectArgs
-import org.veupathdb.lib.s3.s34k.Bucket
 import org.veupathdb.lib.s3.s34k.S3Client
-import org.veupathdb.lib.s3.s34k.S3Object
+import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
 import org.veupathdb.lib.s3.s34k.fields.Headers
 import org.veupathdb.lib.s3.s34k.fields.QueryParams
+import org.veupathdb.lib.s3.s34k.objects.S3Object
 import org.veupathdb.lib.s3.s34k.params.RegionRequestParams
 
 // region Base Args
@@ -33,13 +33,13 @@ internal inline fun <B: BaseArgs.Builder<B, A>, A: BaseArgs> B.queryParams(a: Qu
 
 // region Bucket Args
 
-internal inline fun <B: BucketArgs.Builder<B, A>, A: BucketArgs> B.bucket(bucket: Bucket): B =
+internal inline fun <B: BucketArgs.Builder<B, A>, A: BucketArgs> B.bucket(bucket: S3Bucket): B =
   bucket(bucket.name.name)
 
-internal inline fun <B: BucketArgs.Builder<B, A>, A: BucketArgs> B.region(bucket: Bucket): B =
+internal inline fun <B: BucketArgs.Builder<B, A>, A: BucketArgs> B.region(bucket: S3Bucket): B =
   region(bucket.region)
 
-internal inline fun <B: BucketArgs.Builder<B, A>, A: BucketArgs> B.region(params: RegionRequestParams, bucket: Bucket): B =
+internal inline fun <B: BucketArgs.Builder<B, A>, A: BucketArgs> B.region(params: RegionRequestParams, bucket: S3Bucket): B =
   region(params.region ?: bucket.region)
 
 internal inline fun <B: BucketArgs.Builder<B, A>, A: BucketArgs> B.region(params: RegionRequestParams, client: S3Client): B =

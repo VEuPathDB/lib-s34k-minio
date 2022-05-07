@@ -4,9 +4,9 @@ package org.veupathdb.lib.s3.s34k.minio.util
 
 import io.minio.errors.ErrorResponseException
 import io.minio.errors.MinioException
-import org.veupathdb.lib.s3.s34k.BucketName
 import org.veupathdb.lib.s3.s34k.S3ErrorCode
 import org.veupathdb.lib.s3.s34k.errors.*
+import org.veupathdb.lib.s3.s34k.fields.BucketName
 
 internal inline fun Throwable.isNoSuchKey() =
   this is ErrorResponseException && isNoSuchKey()

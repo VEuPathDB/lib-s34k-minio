@@ -6,15 +6,18 @@ import io.minio.RemoveObjectsArgs
 import io.minio.Result
 import io.minio.messages.DeleteObject
 import io.minio.messages.Item
-import org.veupathdb.lib.s3.s34k.Bucket
 import org.veupathdb.lib.s3.s34k.S3ErrorCode
+import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
+import org.veupathdb.lib.s3.s34k.errors.MultiObjectDeleteError
+import org.veupathdb.lib.s3.s34k.errors.ObjectDeleteError
+import org.veupathdb.lib.s3.s34k.errors.ObjectListError
+import org.veupathdb.lib.s3.s34k.errors.S34KError
 import org.veupathdb.lib.s3.s34k.minio.util.*
-import org.veupathdb.lib.s3.s34k.params.`object`.ObjectDeleteError
 import org.veupathdb.lib.s3.s34k.params.`object`.directory.*
 import java.util.stream.Stream
 
 internal class DirectoryDeleter(
-  private val bucket: Bucket,
+  private val bucket: S3Bucket,
   private val prefix: String,
   private val params: DirectoryDeleteParams,
   private val minio: MinioClient
@@ -43,7 +46,7 @@ internal class DirectoryDeleter(
 
       return res
     } catch (e: Throwable) {
-      throw DirectoryDeleteError(bucket.name.name, prefix, DirectoryDeletePhase.ListObjects, e)
+      throw ObjectListError(bucket.name, e)
     }
   }
 
@@ -78,14 +81,14 @@ internal class DirectoryDeleter(
         // If we had any errors that we cared about in the error response, then
         // throw here.
         if (errs.isNotEmpty())
-          throw DirectoryObjectDeleteError(bucket.name.name, prefix, errs)
+          throw MultiObjectDeleteError(bucket.name, errs)
       }
 
       params.deleteParams.callback?.invoke()
     } catch (e: Throwable) {
-      if (e is DirectoryDeleteError)
+      if (e is S34KError)
         throw e
-      throw DirectoryDeleteError(bucket.name.name, prefix, DirectoryDeletePhase.DeleteObjects, e)
+      e.throwCorrect { "Failed to delete objects from $bucket" }
     }
   }
 }

@@ -1,8 +1,8 @@
 package org.veupathdb.lib.s3.s34k.minio
 
 import io.minio.MinioClient
-import org.veupathdb.lib.s3.s34k.BucketName
-import org.veupathdb.lib.s3.s34k.core.AbstractBucket
+import org.veupathdb.lib.s3.s34k.core.buckets.AbstractBucket
+import org.veupathdb.lib.s3.s34k.fields.BucketName
 import org.veupathdb.lib.s3.s34k.minio.operations.BucketDelete
 import org.veupathdb.lib.s3.s34k.minio.operations.RecursiveBucketDeleter
 import org.veupathdb.lib.s3.s34k.params.bucket.BucketDeleteParams
@@ -10,7 +10,7 @@ import org.veupathdb.lib.s3.s34k.params.bucket.recursive.RecursiveBucketDeletePa
 import java.time.OffsetDateTime
 
 internal class MBucket(
-  name:         BucketName,
+  name: BucketName,
   region:       String?,
   creationDate: OffsetDateTime,
 

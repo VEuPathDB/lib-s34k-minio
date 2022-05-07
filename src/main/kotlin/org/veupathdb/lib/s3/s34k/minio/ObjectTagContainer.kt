@@ -5,12 +5,12 @@ import io.minio.GetObjectTagsArgs
 import io.minio.MinioClient
 import io.minio.SetObjectTagsArgs
 import org.slf4j.LoggerFactory
-import org.veupathdb.lib.s3.s34k.S3Object
-import org.veupathdb.lib.s3.s34k.core.AbstractObjectTagContainer
 import org.veupathdb.lib.s3.s34k.core.fields.BasicTagMap
+import org.veupathdb.lib.s3.s34k.core.objects.AbstractObjectTagContainer
 import org.veupathdb.lib.s3.s34k.fields.TagMap
 import org.veupathdb.lib.s3.s34k.minio.operations.ObjectTagDeleter
 import org.veupathdb.lib.s3.s34k.minio.util.*
+import org.veupathdb.lib.s3.s34k.objects.S3Object
 import org.veupathdb.lib.s3.s34k.params.RegionRequestParams
 import org.veupathdb.lib.s3.s34k.params.tag.*
 

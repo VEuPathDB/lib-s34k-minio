@@ -5,19 +5,20 @@ import io.minio.MakeBucketArgs
 import io.minio.MinioClient
 import io.minio.SetBucketTagsArgs
 import org.slf4j.LoggerFactory
-import org.veupathdb.lib.s3.s34k.Bucket
-import org.veupathdb.lib.s3.s34k.BucketName
+import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
+import org.veupathdb.lib.s3.s34k.errors.BucketGetError
 import org.veupathdb.lib.s3.s34k.errors.BucketNotFoundError
+import org.veupathdb.lib.s3.s34k.errors.BucketPutError
+import org.veupathdb.lib.s3.s34k.errors.BucketTagPutError
+import org.veupathdb.lib.s3.s34k.fields.BucketName
 import org.veupathdb.lib.s3.s34k.minio.util.*
-import org.veupathdb.lib.s3.s34k.params.bucket.put.BucketPutError
 import org.veupathdb.lib.s3.s34k.params.bucket.put.BucketPutParams
-import org.veupathdb.lib.s3.s34k.params.bucket.put.BucketPutPhase
 
 internal object BucketInsert {
 
   private val log = LoggerFactory.getLogger(this::class.java)
 
-  fun execute(bucket: BucketName, params: BucketPutParams, region: String?, minio: MinioClient): Bucket {
+  fun execute(bucket: BucketName, params: BucketPutParams, region: String?, minio: MinioClient): S3Bucket {
     putBucket(bucket, params, region, minio)
     putBucketTags(bucket, params, region, minio)
 
@@ -42,7 +43,7 @@ internal object BucketInsert {
 
       params.putParams.callback?.invoke()
     } catch (e: Throwable) {
-      throw BucketPutError(bucket, BucketPutPhase.PutBucket, e)
+      throw BucketPutError(bucket, e)
     }
   }
 
@@ -65,11 +66,11 @@ internal object BucketInsert {
 
       params.tagPutParams.callback?.invoke()
     } catch (e: Throwable) {
-      throw BucketPutError(bucket, BucketPutPhase.PutTags, e)
+      throw BucketTagPutError(bucket, e)
     }
   }
 
-  private fun getBucket(bucket: BucketName, params: BucketPutParams, region: String?, minio: MinioClient): Bucket? {
+  private fun getBucket(bucket: BucketName, params: BucketPutParams, region: String?, minio: MinioClient): S3Bucket? {
     log.debug("Retrieving bucket '{}'", bucket)
 
     try {
@@ -79,7 +80,7 @@ internal object BucketInsert {
         .build())
         .hunt(bucket, params.region ?: region, minio)
     } catch (e: Throwable) {
-      throw BucketPutError(bucket, BucketPutPhase.GetBucket, e)
+      throw BucketGetError(bucket, e)
     }
   }
 }

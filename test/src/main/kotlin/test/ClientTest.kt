@@ -2,11 +2,11 @@ package test
 
 import io.minio.*
 import org.slf4j.LoggerFactory
-import org.veupathdb.lib.s3.s34k.BucketName
 import org.veupathdb.lib.s3.s34k.S3Client
 import org.veupathdb.lib.s3.s34k.errors.BucketAlreadyExistsError
 import org.veupathdb.lib.s3.s34k.errors.BucketNotEmptyError
 import org.veupathdb.lib.s3.s34k.errors.BucketNotFoundError
+import org.veupathdb.lib.s3.s34k.fields.BucketName
 import java.io.ByteArrayInputStream
 
 class ClientTest(

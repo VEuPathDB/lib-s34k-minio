@@ -3,17 +3,17 @@ package org.veupathdb.lib.s3.s34k.minio.operations
 import io.minio.MinioClient
 import io.minio.RemoveObjectArgs
 import io.minio.StatObjectArgs
-import org.veupathdb.lib.s3.s34k.Bucket
-import org.veupathdb.lib.s3.s34k.ObjectMeta
-import org.veupathdb.lib.s3.s34k.core.BasicObjectMeta
+import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
+import org.veupathdb.lib.s3.s34k.core.objects.BasicObjectMeta
 import org.veupathdb.lib.s3.s34k.minio.fields.MHeaders
 import org.veupathdb.lib.s3.s34k.minio.util.*
+import org.veupathdb.lib.s3.s34k.objects.ObjectMeta
 import org.veupathdb.lib.s3.s34k.params.DeleteParams
 import org.veupathdb.lib.s3.s34k.params.`object`.ObjectExistsParams
 import org.veupathdb.lib.s3.s34k.params.`object`.ObjectStatParams
 
 
-internal fun ObjectDelete(bucket: Bucket, path: String, params: DeleteParams, minio: MinioClient) {
+internal fun ObjectDelete(bucket: S3Bucket, path: String, params: DeleteParams, minio: MinioClient) {
   try {
     minio.removeObject(RemoveObjectArgs.builder()
       .bucket(bucket)
@@ -33,7 +33,7 @@ internal fun ObjectDelete(bucket: Bucket, path: String, params: DeleteParams, mi
 }
 
 
-internal fun ObjectExists(bucket: Bucket, path: String, params: ObjectExistsParams, minio: MinioClient) : Boolean {
+internal fun ObjectExists(bucket: S3Bucket, path: String, params: ObjectExistsParams, minio: MinioClient) : Boolean {
   try {
     minio.statObject(StatObjectArgs.builder()
       .bucket(bucket)
@@ -57,7 +57,7 @@ internal fun ObjectExists(bucket: Bucket, path: String, params: ObjectExistsPara
 
 
 internal fun StatObject(
-  bucket: Bucket,
+  bucket: S3Bucket,
   path:   String,
   params: ObjectStatParams,
   minio:  MinioClient,

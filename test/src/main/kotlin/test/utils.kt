@@ -3,9 +3,9 @@
 package test
 
 import org.slf4j.Logger
-import org.veupathdb.lib.s3.s34k.S3Bucket
+import org.veupathdb.lib.s3.s34k.Bucket
+import org.veupathdb.lib.s3.s34k.BucketName
 import org.veupathdb.lib.s3.s34k.S3Client
-import org.veupathdb.lib.s3.s34k.fields.BucketName
 import java.util.*
 
 internal inline fun Logger.succeed(): Boolean {
@@ -26,17 +26,17 @@ internal inline fun Logger.fail(msg: String): Boolean {
 private const val bucketChars = "abcdefghijklmnopqrstuvwxyz0123456789"
 
 
-internal inline fun S3Client.withBucket(Log: Logger, action: S3Bucket.() -> Boolean): Boolean {
+internal inline fun S3Client.withBucket(Log: Logger, action: Bucket.() -> Boolean): Boolean {
   val name = BucketName(randomName())
 
   Log.debug("Setup: creating test bucket '{}'", name)
 
   try {
-    return createBucket(name).action()
+    return buckets.create(name).action()
   } finally {
-    if (bucketExists(name)) {
+    if (buckets.exists(name)) {
       Log.debug("Cleanup: removing bucket '{}'", name)
-      deleteBucketRecursive(name)
+      buckets.deleteRecursive(name)
     }
   }
 }

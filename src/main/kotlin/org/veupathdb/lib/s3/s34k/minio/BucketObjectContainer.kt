@@ -12,8 +12,11 @@ import io.minio.messages.DeleteObject
 import io.minio.messages.Item
 import org.slf4j.LoggerFactory
 import org.veupathdb.lib.s3.s34k.*
-import org.veupathdb.lib.s3.s34k.core.AbstractObjectContainer
-import org.veupathdb.lib.s3.s34k.core.BasicObjectList
+import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
+import org.veupathdb.lib.s3.s34k.core.objects.AbstractObjectContainer
+import org.veupathdb.lib.s3.s34k.core.objects.BasicObjectList
+import org.veupathdb.lib.s3.s34k.errors.MultiObjectDeleteError
+import org.veupathdb.lib.s3.s34k.errors.ObjectDeleteError
 import org.veupathdb.lib.s3.s34k.errors.S34KError
 import org.veupathdb.lib.s3.s34k.minio.fields.MHeaders
 import org.veupathdb.lib.s3.s34k.minio.operations.*
@@ -22,15 +25,15 @@ import org.veupathdb.lib.s3.s34k.minio.operations.ObjectDelete
 import org.veupathdb.lib.s3.s34k.minio.operations.ObjectExists
 import org.veupathdb.lib.s3.s34k.minio.operations.StatObject
 import org.veupathdb.lib.s3.s34k.minio.util.*
+import org.veupathdb.lib.s3.s34k.objects.*
 import org.veupathdb.lib.s3.s34k.params.DeleteParams
 import org.veupathdb.lib.s3.s34k.params.`object`.*
 import org.veupathdb.lib.s3.s34k.params.`object`.directory.DirectoryDeleteParams
-import org.veupathdb.lib.s3.s34k.params.`object`.multi.MultiObjectDeleteError
 import org.veupathdb.lib.s3.s34k.params.`object`.multi.MultiObjectDeleteParams
 import org.veupathdb.lib.s3.s34k.params.`object`.touch.ObjectTouchParams
 
 internal class BucketObjectContainer(
-  private val bucket: Bucket,
+  private val bucket: S3Bucket,
   private val minio: MinioClient,
 ) : AbstractObjectContainer() {
 
@@ -157,7 +160,7 @@ internal class BucketObjectContainer(
       }
 
       if (errors.isNotEmpty())
-        throw MultiObjectDeleteError(bucket.name.name, errors)
+        throw MultiObjectDeleteError(bucket.name, errors)
 
       params.callback?.invoke()
     } catch (e: Throwable) {
