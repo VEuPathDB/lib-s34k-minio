@@ -1,9 +1,6 @@
 package test
 
-import io.minio.MinioClient
 import org.slf4j.LoggerFactory
-import org.veupathdb.lib.s3.s34k.S3Api
-import org.veupathdb.lib.s3.s34k.S3Config
 
 private val Log = LoggerFactory.getLogger("AppKt")
 
