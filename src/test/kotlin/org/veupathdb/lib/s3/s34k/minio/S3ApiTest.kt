@@ -1,10 +1,11 @@
-package org.veupathdb.lib.s3.s34k
+package org.veupathdb.lib.s3.s34k.minio
 
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
-import org.veupathdb.lib.s3.s34k.minio.MinioS3Client
+import org.veupathdb.lib.s3.s34k.S3Api
+import org.veupathdb.lib.s3.s34k.S3Config
 import kotlin.test.assertTrue
 
 @DisplayName("S3Api")
@@ -22,7 +23,7 @@ internal class S3ApiTest {
         S3Api.newClient(conf)
       }
 
-      assertTrue(client is MinioS3Client)
+      assertTrue(client is MClient)
       assertTrue(client.defaultRegion == "taco")
     }
   }

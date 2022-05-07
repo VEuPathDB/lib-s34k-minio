@@ -5,6 +5,7 @@ image:https://img.shields.io/badge/jvm-1.8-blue[title="Compatible with JVM 1.8"]
 
 Minio implementation of the https://github.com/VEuPathDB/lib-s34k[S34k] API.
 
+
 == Usage
 
 .*Adding to project*:

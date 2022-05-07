@@ -2,166 +2,90 @@ package org.veupathdb.lib.s3.s34k.minio.operations
 
 import io.minio.ListObjectsArgs
 import io.minio.MinioClient
-import io.minio.RemoveObjectArgs
 import io.minio.RemoveObjectsArgs
 import io.minio.Result
-import io.minio.messages.DeleteError
 import io.minio.messages.DeleteObject
 import io.minio.messages.Item
-import org.slf4j.LoggerFactory
-import org.veupathdb.lib.s3.s34k.minio.*
-import org.veupathdb.lib.s3.s34k.requests.`object`.ObjectDeleteError
-import org.veupathdb.lib.s3.s34k.requests.`object`.directory.DirectoryNotEmptyError
-import org.veupathdb.lib.s3.s34k.requests.`object`.directory.DirectoryObjectDeleteError
-import org.veupathdb.lib.s3.s34k.requests.`object`.directory.S3DirectoryDeleteParams
-import org.veupathdb.lib.s3.s34k.response.bucket.S3Bucket
-import java.util.stream.Collectors
+import org.veupathdb.lib.s3.s34k.Bucket
+import org.veupathdb.lib.s3.s34k.S3ErrorCode
+import org.veupathdb.lib.s3.s34k.minio.util.*
+import org.veupathdb.lib.s3.s34k.params.`object`.ObjectDeleteError
+import org.veupathdb.lib.s3.s34k.params.`object`.directory.*
 import java.util.stream.Stream
 
-class DirectoryDeleter(
-  private val minio:  MinioClient,
-  private val bucket: S3Bucket,
-  private val params: S3DirectoryDeleteParams,
+internal class DirectoryDeleter(
+  private val bucket: Bucket,
+  private val prefix: String,
+  private val params: DirectoryDeleteParams,
+  private val minio: MinioClient
 ) {
-
-  private val Log = LoggerFactory.getLogger(this::class.java)
-
-  // TODO: this should be configurable in the params.
-  private val maxKeys = 1000
-
   fun execute() {
-    Log.trace("execute()")
-
-    if (params.recursive) {
-      Log.debug("Recursively deleting directory '{}' from bucket '{}'", params.path, bucket.bucketName)
-      deleteRecursive()
-    } else {
-      Log.debug("Non-recursively deleting directory '{}' from bucket '{}'", params.path, bucket.bucketName)
-      deleteSimple()
-    }
+    deleteObjects(listObjects())
+    params.callback?.invoke()
   }
 
-  fun deleteSimple() {
-    Log.trace("deleteSimple()")
-
-    // If there exists even one object with the target path as a prefix, then
-    // the 'directory' is not empty and cannot be deleted.
-    if (fetchSubKeys().findAny().isPresent)
-      throw DirectoryNotEmptyError(bucket.bucketName.name, params.path!!)
-
-    if (!objectExists()) {
-      return params.callback.invoke("deleteSimple", Log)
-    }
-
+  private fun listObjects(): Stream<String> {
     try {
-      minio.removeObject(RemoveObjectArgs.builder()
-        .bucket(bucket)
-        .region(params, bucket)
-        .`object`(params.reqPath())
-        .headers(params.headers)
-        .queryParams(params.queryParams)
-        .build())
-      return params.callback.invoke("deleteSimple", Log)
-    } catch (e: Throwable) {
-      throw e.toCorrect {
-        "Failed to delete directory '${params.path}'"
-      }
-    }
-  }
-
-  fun deleteRecursive() {
-    Log.trace("deleteRecursive()")
-
-    // We need to consume the stream here to get a count of the files to delete.
-    // If this number is 0, then we can skip the bulk delete and return false
-    val deleteables = fetchSubKeys()
-      .map(::DeleteObject)
-      .collect(Collectors.toList())
-
-    if (deleteables.isNotEmpty()) {
-      // Attempt to delete the files found
-      Log.debug("Attempting to delete all files in directory '{}' from bucket '{}'", params.path, bucket.bucketName)
-      try {
-        val res = minio.removeObjects(RemoveObjectsArgs.builder()
-          .bucket(bucket)
-          .region(params, bucket)
-          .objects(deleteables)
-          .headers(params.headers)
-          .queryParams(params.queryParams)
-          .build())
-
-        // Collect delete errors from the bulk delete to report if any occurred.
-        val failed = ArrayList<ObjectDeleteError>(deleteables.size)
-
-        // Stream over the delete results from the bulk object delete
-        res.toStream()
-          // Pop the actual error out of the result
-          .map(Result<DeleteError>::get)
-          // Convert the minio error into an S34K error
-          .map { ObjectDeleteError(it.objectName(), it.message(), it.code()) }
-          // Add each to the failed list
-          .forEach(failed::add)
-
-        // If we did have an error during our bulk delete, stop here and report it
-        if (failed.isNotEmpty())
-          throw DirectoryObjectDeleteError(bucket.bucketName.name, params.path!!, failed)
-      } catch (e: Throwable) {
-        throw e.toCorrect { "Failed to delete files in directory '${params.path}' from bucket '${bucket.bucketName}'" }
-      }
-    }
-
-    // Attempt to delete the directory itself
-    try {
-      // Remove the directory key itself.
-      minio.removeObject(RemoveObjectArgs.builder()
-        .bucket(bucket)
-        .region(params, bucket)
-        .`object`(params.reqPath())
-        .headers(params.headers)
-        .queryParams(params.queryParams)
-        .build())
-    } catch (e: Throwable) {
-      throw e.toCorrect { "Failed to delete directory '${params.path}' from bucket '${bucket.bucketName}'" }
-    }
-  }
-
-  fun objectExists(): Boolean {
-    Log.trace("objectExists()")
-
-    return bucket.objectExists {
-      path = params.reqPath()
-      region = params.region
-      // TODO: multistage headers
-      // TODO: multistage query params
-      // TODO: multistage callback
-    }
-  }
-
-  fun fetchSubKeys(): Stream<String> {
-    Log.trace("fetchSubKeys()")
-
-    val path = params.reqPath().asPath()
-
-    Log.debug("Retrieving list of objects with the prefix '{}'", path)
-    try {
-      // TODO: multistage callback
-      return minio.listObjects(ListObjectsArgs.builder()
+      val res = minio.listObjects(ListObjectsArgs.builder()
         .bucket(bucket)
         .region(params, bucket)
         .recursive(true)
-        .prefix(path)
-        .maxKeys(maxKeys)
-        // TODO: multistage headers
-        // TODO: multistage query params
+        .maxKeys(params.listParams.pageSize.toInt())
+        .prefix(prefix.addSlash())
+        .headers(params.headers, params.listParams.headers)
+        .queryParams(params.queryParams, params.listParams.queryParams)
         .build())
         .toStream()
         .map(Result<Item>::get)
         .map(Item::objectName)
+
+      params.listParams.callback?.invoke()
+
+      return res
     } catch (e: Throwable) {
-      throw e.toCorrect {
-        "Failed to fetch object list with prefix '$path'"
-      }
+      throw DirectoryDeleteError(bucket.name.name, prefix, DirectoryDeletePhase.ListObjects, e)
     }
   }
 
+  private fun deleteObjects(items: Stream<String>) {
+    try {
+      val res = minio.removeObjects(RemoveObjectsArgs.builder()
+        .bucket(bucket)
+        .region(params, bucket)
+        .bypassGovernanceMode(params.deleteParams.bypassGovernance)
+        .objects(items.map(::DeleteObject).toIterable())
+        .headers(params.headers, params.deleteParams.headers)
+        .queryParams(params.queryParams, params.deleteParams.queryParams)
+        .build())
+
+      val writ = res.iterator()
+
+      // If the server returned 1 or more object delete errors, go through them
+      // to see if we care about them.
+      if (writ.hasNext()) {
+        val errs = ArrayList<ObjectDeleteError>(10)
+
+        // Iterate over all the returned errors.
+        for (err in writ) {
+          val unwrapped = err.get()
+
+          // If the error is NoSuchKey, then we can ignore it because we were
+          // trying to delete the object anyway.
+          if (unwrapped.code() != S3ErrorCode.NoSuchKey)
+            errs.add(ObjectDeleteError(unwrapped.objectName(), unwrapped.message(), unwrapped.code()))
+        }
+
+        // If we had any errors that we cared about in the error response, then
+        // throw here.
+        if (errs.isNotEmpty())
+          throw DirectoryObjectDeleteError(bucket.name.name, prefix, errs)
+      }
+
+      params.deleteParams.callback?.invoke()
+    } catch (e: Throwable) {
+      if (e is DirectoryDeleteError)
+        throw e
+      throw DirectoryDeleteError(bucket.name.name, prefix, DirectoryDeletePhase.DeleteObjects, e)
+    }
+  }
 }

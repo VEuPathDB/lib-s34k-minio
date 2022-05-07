@@ -5,134 +5,142 @@ import io.minio.GetBucketTagsArgs
 import io.minio.MinioClient
 import io.minio.SetBucketTagsArgs
 import org.slf4j.LoggerFactory
-import org.veupathdb.lib.s3.s34k.core.fields.tags.BasicS3TagMap
-import org.veupathdb.lib.s3.s34k.fields.tags.S3TagMap
-import org.veupathdb.lib.s3.s34k.minio.*
-import org.veupathdb.lib.s3.s34k.minio.headers
-import org.veupathdb.lib.s3.s34k.minio.queryParams
-import org.veupathdb.lib.s3.s34k.minio.regions
-import org.veupathdb.lib.s3.s34k.minio.toCorrect
-import org.veupathdb.lib.s3.s34k.requests.bucket.S3BucketTagDeleteParams
-import org.veupathdb.lib.s3.s34k.response.bucket.S3Bucket
+import org.veupathdb.lib.s3.s34k.Bucket
+import org.veupathdb.lib.s3.s34k.minio.util.bucket
+import org.veupathdb.lib.s3.s34k.minio.util.headers
+import org.veupathdb.lib.s3.s34k.minio.util.queryParams
+import org.veupathdb.lib.s3.s34k.minio.util.region
+import org.veupathdb.lib.s3.s34k.params.bucket.tag.TargetedBucketTagDeleteError
+import org.veupathdb.lib.s3.s34k.params.bucket.tag.TargetedBucketTagDeleteParams
+import org.veupathdb.lib.s3.s34k.params.bucket.tag.TargetedBucketTagDeletePhase
 
-// TODO: v0.2.0
-internal open class BucketTagDeleter(
-  private val bucket: S3Bucket,
-  private val minio:  MinioClient,
-  private val params: S3BucketTagDeleteParams,
+internal class BucketTagDeleter(
+  private val bucket: Bucket,
+  private val client: MinioClient,
+  private val params: TargetedBucketTagDeleteParams,
 ) {
 
-  private val Log = LoggerFactory.getLogger(this::class.java)
+  private val log = LoggerFactory.getLogger(this::class.java)
 
-  fun execute(): S3TagMap {
-    // If allTags wasn't set, and there are no tags specified for deletion, then
-    // we have nothing to do, so we can bail here.
-    if (!params.allTags && params.tags.isEmpty)
-      return params.callback.invoke("execute", Log, BasicS3TagMap())
+  fun execute() {
+    // If the caller didn't specify any tags to delete, then we have nothing to
+    // do.  Bail here.
+    if (params.tags.isEmpty) {
+      params.callback?.invoke()
+      return
+    }
 
-    // Retrieve the tags currently attached to the target bucket.
-    val oldTags = fetchTags()
+    // Get all the tags currently attached to the target object.
+    val original = fetch()
 
-    // If there aren't any tags presently attached to the bucket, then there is
-    // nothing to delete; we can bail here.
-    if (oldTags.isEmpty())
-      return params.callback.invoke("execute", Log, BasicS3TagMap())
+    // Post fetch callback
+    params.getParams.callback?.invoke()
 
-    val toDelete = HashMap<String, String>(params.tags.size)
-    val toKeep   = HashMap<String, String>(oldTags.size)
+    // If there were no tags attached to the object in the first place, then
+    // we have nothing to delete.  Bail here.
+    if (original.isEmpty()) {
+      params.callback?.invoke()
+      return
+    }
 
-    oldTags.forEach { (k, v) ->
-      if (params.tags.contains(k))
-        toDelete[k] = v
+    // counter of tags that occur in both the params' tag set and the tags
+    // currently attached to the target object.
+    var overlap = 0
+
+    // map of tags that exist on the target object, but do not exist in the
+    // params' tag set.
+    val keep = HashMap<String, String>(10)
+
+    // Sift through the tags to determine what tags we are keeping.
+    original.forEach { (k, v) ->
+      // If the key in the tags currently attached to the object matches a
+      // tag targeted for deletion, increment the overlap counter to indicate
+      // that we have something to delete.
+      if (k in params.tags)
+        overlap++
+      // If the key in the tags currently attached to the object does not
+      // match any tags targeted for deletion, add it to the keep map.
       else
-        toKeep[k] = v
+        keep[k] = v
     }
 
-    // If there is no overlap between the tags targeted for deletion, and the
-    // tags presently on the bucket, then we have nothing we can delete; bail
-    // here.
-    if (toDelete.isEmpty())
-      return params.callback.invoke("execute", Log, BasicS3TagMap())
-
-    // If we are here, there exist tags on the target bucket that also exist in
-    // the tags targeted for deletion.  We do not yet know if we will be
-    // re-appending anything to the target bucket, but we will figure that out
-    // later.
-
-    deleteTags()
-
-    // If we have nothing to re-append to the object, we can stop here and
-    // return the map of tags we deleted.
-    if (toKeep.isEmpty())
-      return params.callback.invoke("execute", Log, BasicS3TagMap(toDelete))
-
-    // Re-append the tags that we want to keep to the target bucket.
-    appendTags(toKeep)
-
-    return params.callback.invoke("execute", Log, BasicS3TagMap(toDelete))
-  }
-
-  protected fun appendTags(tags: Map<String, String>) {
-    Log.trace("appendTags()")
-
-    try {
-      Log.debug("Re-appending {} tags to bucket '{}'", tags.size, bucket.bucketName)
-
-      minio.setBucketTags(SetBucketTagsArgs.builder()
-        .bucket(bucket.bucketName.name)
-        .regions(params.region, bucket.defaultRegion, bucket.client.defaultRegion)
-        .tags(tags)
-        .headers(params.headers)
-        .queryParams(params.queryParams)
-        .build())
-
-      Log.debug("Successfully re-appended {} tags on bucket '{}'", tags.size, bucket.bucketName)
-    } catch (e: Throwable) {
-      Log.error("Failed to re-append tags to bucket '{}'", bucket.bucketName)
-      throw e.toCorrect { "Failed to re-append tags to bucket '${bucket.bucketName}'" }
+    // If there is no overlap between the tags currently attached to the
+    // object and the tags we want to delete, then there is nothing to do.
+    if (overlap == 0) {
+      params.callback?.invoke()
+      return
     }
 
-  }
+    // So we do have tags to delete.
 
-  protected fun deleteTags() {
-    Log.trace("deleteTags()")
+    // Delete all the tags currently attached to the object (S3 offers no
+    // function for targeted tag deletion).
+    delete()
 
-    try {
-      Log.debug("Deleting all tags from bucket '{}'.", bucket.bucketName)
+    // post delete callback
+    params.deleteParams.callback?.invoke()
 
-      minio.deleteBucketTags(DeleteBucketTagsArgs.builder()
-        .bucket(bucket.bucketName.name)
-        .regions(params.region, bucket.defaultRegion, bucket.client.defaultRegion)
-        .headers(params.headers)
-        .queryParams(params.queryParams)
-        .build())
-
-      Log.debug("Successfully deleted all tags from bucket '{}'.", bucket.bucketName)
-    } catch (e: Throwable) {
-      Log.error("Failed to delete tags from bucket '{}'", bucket.bucketName)
-      throw e.toCorrect { "Failed to delete tags from bucket '${bucket.bucketName}'" }
+    // If we don't have any tags that we want to keep, then we have nothing
+    // more to do.  Bail here.
+    if (keep.isEmpty()) {
+      params.callback?.invoke()
+      return
     }
+
+    // So we have tags to re-attach to the target object.
+
+    // Re-attach the tags to keep to the target object.
+    put(keep)
+
+    // Post put callback
+    params.putParams.callback?.invoke()
+
+    // operation end callback
+    params.callback?.invoke()
   }
 
-  protected fun fetchTags(): Map<String, String> {
-    Log.trace("fetchTags()")
+  private fun fetch(): Map<String, String> {
+    log.debug("Fetching tags for bucket '{}'", bucket.name)
 
     try {
-      Log.debug("Fetching all tags for bucket '{}'.", bucket.bucketName)
-
-      val res = minio.getBucketTags(GetBucketTagsArgs.builder()
-        .bucket(bucket.bucketName.name)
-        .regions(params.region, bucket.defaultRegion, bucket.client.defaultRegion)
-        .headers(params.headers)
-        .queryParams(params.queryParams)
+      return client.getBucketTags(GetBucketTagsArgs.builder()
+        .bucket(bucket)
+        .region(params, bucket)
+        .headers(params.headers, params.getParams.headers)
+        .queryParams(params.queryParams, params.getParams.queryParams)
         .build()).get()
-
-      Log.debug("Successfully fetched {} tags from bucket '{}'.", res.size, bucket.bucketName)
-
-      return res
     } catch (e: Throwable) {
-      Log.error("Failed to fetch tags from bucket '{}'", bucket.bucketName)
-      throw e.toCorrect { "Failed to fetch tags from bucket '${bucket.bucketName}'" }
+      throw TargetedBucketTagDeleteError(bucket, TargetedBucketTagDeletePhase.Get, params, e)
+    }
+  }
+
+  private fun delete() {
+    log.debug("Deleting all tags from bucket '{}'", bucket.name)
+
+    try {
+      client.deleteBucketTags(DeleteBucketTagsArgs.builder()
+        .bucket(bucket)
+        .region(params, bucket)
+        .headers(params.headers, params.deleteParams.headers)
+        .queryParams(params.queryParams, params.deleteParams.queryParams)
+        .build())
+    } catch (e: Throwable) {
+      throw TargetedBucketTagDeleteError(bucket, TargetedBucketTagDeletePhase.Delete, params, e)
+    }
+  }
+
+  private fun put(tags: Map<String, String>) {
+    log.debug("Re-attaching {} tags to bucket '{}'", tags.size, bucket.name)
+
+    try {
+      client.setBucketTags(SetBucketTagsArgs.builder()
+        .bucket(bucket)
+        .region(params, bucket)
+        .headers(params.headers, params.putParams.headers)
+        .queryParams(params.queryParams, params.putParams.queryParams)
+        .build())
+    } catch (e: Throwable) {
+      throw TargetedBucketTagDeleteError(bucket, TargetedBucketTagDeletePhase.Put, params, e)
     }
   }
 }
