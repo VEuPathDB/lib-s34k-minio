@@ -55,7 +55,8 @@ internal inline fun <B: ObjectArgs.Builder<B, A>, A: ObjectArgs> B.region(params
 
 // endregion Object Args
 
-internal inline fun ListObjectsArgs.Builder.optPrefix(prefix: String?) = also { prefix?.let(this::prefix) }
+internal inline fun ListObjectsArgs.Builder.optPrefix(prefix: String?) =
+  also { if (!prefix.isNullOrBlank()) prefix(prefix) }
 
 
 internal inline fun PutObjectArgs.Builder.optContentType(ct: String?) = also { ct?.let(this::contentType) }

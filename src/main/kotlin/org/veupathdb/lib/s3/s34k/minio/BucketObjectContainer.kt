@@ -235,7 +235,7 @@ internal class BucketObjectContainer(
     return out
   }
 
-  override fun listAll(params: ObjectListParams): ObjectList {
+  override fun listAll(params: ObjectListAllParams): ObjectList {
     log.debug("Attempting to list all objects in {}", bucket)
 
     val out = try {
@@ -258,6 +258,33 @@ internal class BucketObjectContainer(
     params.callback?.invoke(out)
 
     return out
+  }
+
+  override fun list(params: ObjectListParams): ObjectList {
+    log.debug("Attempting to list objects in {}", bucket)
+
+    val res = try {
+      minio.listObjects(ListObjectsArgs.builder()
+        .bucket(bucket)
+        .region(params, bucket)
+        .recursive(true)
+        .optPrefix(params.region)
+        .headers(params.headers)
+        .queryParams(params.queryParams)
+        .build())
+        .toStream()
+        .map(Result<Item>::get)
+    } catch (e: Throwable) {
+      e.throwCorrect { "Failed to fetch object list from $bucket" }
+    }
+
+    // If they set the recursive flag, then we are gonna given them all of it.
+    if (params.recursive) {
+      return BasicObjectList(res.map{ MObject(it.objectName(), bucket.region, MHeaders(), bucket, minio) }.toIterable())
+    }
+
+    // They didn't set the recursive flag, so we have some work to do
+    val pref = if (params.prefix.isNullOrBlank()) 0
   }
 
   override fun open(path: String, params: ObjectOpenParams): StreamObject? {

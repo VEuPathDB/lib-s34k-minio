@@ -38,7 +38,7 @@ dependencies {
   implementation("org.slf4j:slf4j-api:1.7.36")
   implementation("io.minio:minio:8.3.8")
 
-  api("org.veupathdb.lib.s3:s34k-core:0.2.0+s34k-0.3.0")
+  api("org.veupathdb.lib.s3:s34k-core:0.4.0-SNAPSHOT") { isChanging = true }
 
   testImplementation(kotlin("test"))
 }
