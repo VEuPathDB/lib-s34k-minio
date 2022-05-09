@@ -25,8 +25,9 @@ dependencies {
   implementation(kotlin("stdlib"))
   implementation(kotlin("stdlib-jdk8"))
   implementation("org.slf4j:slf4j-api:1.7.36")
+  implementation("io.minio:minio:8.3.9")
 
-  implementation("org.veupathdb.lib.s3:s34k-minio:0.1.0")
+  implementation("org.veupathdb.lib.s3:s34k-minio:0.2.0+s34k-0.4.0")
 
   implementation("org.apache.logging.log4j:log4j-core:2.17.2")
   implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.2")
