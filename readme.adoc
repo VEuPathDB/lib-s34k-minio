@@ -2,6 +2,8 @@
 :source-highlighter: highlightjs
 
 image:https://img.shields.io/badge/jvm-1.8-blue[title="Compatible with JVM 1.8"]
+image:https://img.shields.io/github/v/release/veupathdb/lib-s34k-minio[title="Version"]
+
 
 Minio implementation of the https://github.com/VEuPathDB/lib-s34k[S34k] API.
 
@@ -11,7 +13,7 @@ Minio implementation of the https://github.com/VEuPathDB/lib-s34k[S34k] API.
 .*Adding to project*:
 [source, kotlin]
 ----
-    implementation("org.veupathdb.lib.s3:s34k-minio:0.1.0")
+    implementation("org.veupathdb.lib.s3:s34k-minio:0.2.0+s34k-0.4.0")
 ----
 
 For a full API reference, see
