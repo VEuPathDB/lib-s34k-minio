@@ -25,7 +25,7 @@ dependencies {
   implementation(kotlin("stdlib"))
   implementation(kotlin("stdlib-jdk8"))
   implementation("org.slf4j:slf4j-api:1.7.36")
-  implementation("io.minio:minio:8.3.9")
+  implementation("io.minio:minio:8.4.1")
 
   implementation("org.veupathdb.lib.s3:s34k-minio:0.2.0+s34k-0.4.0")
 

@@ -31,6 +31,7 @@ import org.veupathdb.lib.s3.s34k.params.`object`.*
 import org.veupathdb.lib.s3.s34k.params.`object`.directory.DirectoryDeleteParams
 import org.veupathdb.lib.s3.s34k.params.`object`.multi.MultiObjectDeleteParams
 import org.veupathdb.lib.s3.s34k.params.`object`.touch.ObjectTouchParams
+import java.time.OffsetDateTime
 
 internal class BucketObjectContainer(
   private val bucket: S3Bucket,
@@ -196,8 +197,10 @@ internal class BucketObjectContainer(
 
       val out = MFileObject(
         res.`object`(),
+        res.lastModified(),
+        res.eTag(),
         res.region(),
-        MHeaders(),
+        MHeaders(res.headers()),
         bucket,
         minio,
         params.localFile!!
@@ -230,7 +233,15 @@ internal class BucketObjectContainer(
 
       e.throwCorrect { "Failed to get object '$path' from $bucket" }
     }
-    val out = MObject(res.`object`(), res.region(), MHeaders(res.headers()), bucket, minio)
+    val out = MObject(
+      res.`object`(),
+      res.lastModified().toOffsetDateTime(),
+      res.etag(),
+      res.region(),
+      MHeaders(res.headers()),
+      bucket,
+      minio
+    )
     params.callback?.invoke(out)
     return out
   }
@@ -249,7 +260,15 @@ internal class BucketObjectContainer(
           .build())
           .toStream()
           .map(Result<Item>::get)
-          .map { MObject(it.objectName(), bucket.region, MHeaders(), bucket, minio) }
+          .map { MObject(
+            it.objectName(),
+            it.lastModified().toOffsetDateTime(),
+            it.etag(),
+            bucket.region,
+            MHeaders(),
+            bucket,
+            minio
+          ) }
           .toIterable())
     } catch (e: Throwable) {
       e.throwCorrect { "Failed to fetch object list from $bucket" }
@@ -275,7 +294,15 @@ internal class BucketObjectContainer(
           .build())
           .toStream()
           .map(Result<Item>::get)
-          .map { MObject(it.objectName(), bucket.region, MHeaders(), bucket, minio) }
+          .map { MObject(
+            it.objectName(),
+            it.lastModified().toOffsetDateTime(),
+            it.etag(),
+            bucket.region,
+            MHeaders(),
+            bucket,
+            minio
+          ) }
           .toIterable())
     } catch (e: Throwable) {
       e.throwCorrect { "Failed to fetch object list from $bucket" }
@@ -302,7 +329,16 @@ internal class BucketObjectContainer(
       e.throwCorrect { "Failed to get object '$path' from $bucket" }
     }
 
-    val out = MStreamObject(res.`object`(), res.region(), res, MHeaders(res.headers()), bucket, minio)
+    val out = MStreamObject(
+      res.`object`(),
+      res.lastModified(),
+      res.eTag(),
+      res.region(),
+      res,
+      MHeaders(res.headers()),
+      bucket,
+      minio
+    )
 
     params.callback?.invoke(out)
 
@@ -324,7 +360,15 @@ internal class BucketObjectContainer(
         .queryParams(params.queryParams)
         .build())
 
-      val out = MObject(path, res.region(), MHeaders(res.headers()), bucket, minio)
+      val out = MObject(
+        path,
+        OffsetDateTime.now(),
+        res.etag(),
+        res.region(),
+        MHeaders(res.headers()),
+        bucket,
+        minio
+      )
 
       params.callback?.invoke(out)
 
@@ -365,6 +409,8 @@ internal class BucketObjectContainer(
 
       val out = MObject(
         res.`object`(),
+        null,
+        res.etag(),
         res.region(),
         MHeaders(res.headers()),
         bucket,
@@ -387,7 +433,15 @@ internal class BucketObjectContainer(
         .`object`(path)
         .build())
 
-      return MObject(path, bucket.region, MHeaders(stat.headers()), bucket, minio).action()
+      return MObject(
+        path,
+        stat.lastModified().toOffsetDateTime(),
+        stat.etag(),
+        bucket.region,
+        MHeaders(stat.headers()),
+        bucket,
+        minio
+      ).action()
     } catch (e: Throwable) {
       e.throwCorrect { "Failed to stat object '$path' in bucket '${bucket.name}'" }
     }

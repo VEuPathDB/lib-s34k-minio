@@ -12,15 +12,18 @@ import org.veupathdb.lib.s3.s34k.objects.ObjectMeta
 import org.veupathdb.lib.s3.s34k.params.DeleteParams
 import org.veupathdb.lib.s3.s34k.params.`object`.ObjectExistsParams
 import org.veupathdb.lib.s3.s34k.params.`object`.ObjectStatParams
+import java.time.OffsetDateTime
 
 internal open class MObject(
-  path:    String,
-  region:  String?,
-  headers: Headers,
-  bucket: S3Bucket,
+  path:         String,
+  lastModified: OffsetDateTime?,
+  eTag:         String,
+  region:       String?,
+  headers:      Headers,
+  bucket:       S3Bucket,
 
   private val client: MinioClient,
-) : AbstractS3Object(path, region, headers, bucket) {
+) : AbstractS3Object(path, lastModified, eTag, region, headers, bucket) {
 
   private val log = LoggerFactory.getLogger(this::class.java)
 

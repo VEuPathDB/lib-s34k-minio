@@ -89,10 +89,6 @@ class BucketTest(private val client: S3Client) {
     // TODO: touch object when object already exists
     // TODO: touch object when object does not exist
 
-    // TODO: put directory when bucket does not exist
-    // TODO: put directory when object already exists
-    // TODO: put directory when object does not exist
-
     // TODO: delete directory when bucket does not exist
     // TODO: delete directory when object does not exist
     // TODO: delete directory when object has no sub-keys

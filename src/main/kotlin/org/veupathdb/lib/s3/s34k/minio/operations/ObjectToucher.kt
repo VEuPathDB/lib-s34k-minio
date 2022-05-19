@@ -45,6 +45,8 @@ internal class ObjectToucher(
 
       return MObject(
         res.`object`(),
+        res.lastModified().toOffsetDateTime(),
+        res.etag(),
         res.region(),
         MHeaders(res.headers()),
         bucket,
@@ -75,6 +77,8 @@ internal class ObjectToucher(
 
       return MObject(
         res.`object`(),
+        null,
+        res.etag(),
         res.region(),
         MHeaders(res.headers()),
         bucket,

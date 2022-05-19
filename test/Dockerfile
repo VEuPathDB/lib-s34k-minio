@@ -14,5 +14,3 @@ COPY gradle gradle/
 RUN ./gradlew --no-daemon shadowJar
 
 CMD ./startup.sh
-
-
