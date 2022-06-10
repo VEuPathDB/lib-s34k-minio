@@ -27,7 +27,7 @@ dependencies {
   implementation("org.slf4j:slf4j-api:1.7.36")
   implementation("io.minio:minio:8.4.1")
 
-  implementation("org.veupathdb.lib.s3:s34k-minio:0.3.0+s34k-0.7.0")
+  implementation("org.veupathdb.lib.s3:s34k-minio:0.3.2+s34k-0.7.0")
 
   implementation("org.apache.logging.log4j:log4j-core:2.17.2")
   implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.2")

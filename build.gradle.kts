@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "org.veupathdb.lib.s3"
-version = "0.3.1+s34k-0.7.0"
+version = "0.3.2+s34k-0.7.0"
 
 java {
   sourceCompatibility = JavaVersion.VERSION_1_8

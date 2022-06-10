@@ -288,7 +288,7 @@ internal class BucketObjectContainer(
           .bucket(bucket)
           .region(params, bucket)
           .recursive(true)
-          .optPrefix(params.region)
+          .optPrefix(params.prefix)
           .headers(params.headers)
           .queryParams(params.queryParams)
           .build())
