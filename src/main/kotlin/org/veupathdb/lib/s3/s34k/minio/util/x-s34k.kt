@@ -32,8 +32,11 @@ internal fun raise(field: String, params: S3RequestParams): Nothing =
 
 internal fun FileUploadParams.reqFile() =
   (localFile ?: raise("localFile", this)).also {
+    if (it.isDirectory)
+      throw InvalidRequestConfigError("Input file $localFile is a directory not a normal file", this)
+
     if (!it.exists())
-      throw InvalidRequestConfigError("File $localFile does not exist.", this)
+      throw InvalidRequestConfigError("File $localFile does not exist", this)
 
     if (!it.canRead())
       throw InvalidRequestConfigError("Cannot read file $localFile", this)
