@@ -380,7 +380,7 @@ internal class BucketObjectContainer(
 
   override fun rmdir(path: String, params: DirectoryDeleteParams) {
     log.debug("Attempting to remove directory '{}' from {}", path, bucket)
-    DirectoryDeleter(bucket, path, params, minio)
+    DirectoryDeleter(bucket, path, params, minio).execute()
   }
 
   override fun stat(path: String, params: ObjectStatParams): ObjectMeta? {
