@@ -15,6 +15,7 @@ import org.veupathdb.lib.s3.s34k.*
 import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
 import org.veupathdb.lib.s3.s34k.core.objects.AbstractObjectContainer
 import org.veupathdb.lib.s3.s34k.core.objects.BasicObjectList
+import org.veupathdb.lib.s3.s34k.core.objects.BasicSubPathListing
 import org.veupathdb.lib.s3.s34k.errors.MultiObjectDeleteError
 import org.veupathdb.lib.s3.s34k.errors.ObjectDeleteError
 import org.veupathdb.lib.s3.s34k.errors.S34KError
@@ -32,6 +33,7 @@ import org.veupathdb.lib.s3.s34k.params.`object`.directory.DirectoryDeleteParams
 import org.veupathdb.lib.s3.s34k.params.`object`.multi.MultiObjectDeleteParams
 import org.veupathdb.lib.s3.s34k.params.`object`.touch.ObjectTouchParams
 import java.time.OffsetDateTime
+import kotlin.streams.toList
 
 internal class BucketObjectContainer(
   private val bucket: S3Bucket,
@@ -306,6 +308,41 @@ internal class BucketObjectContainer(
           .toIterable())
     } catch (e: Throwable) {
       e.throwCorrect { "Failed to fetch object list from $bucket" }
+    }
+  }
+
+  override fun listSubPaths(params: SubPathListParams): SubPathListing {
+    log.debug("Attempting to list sub-paths under prefix {} with delimiter {} in bucket {}", params.prefix, params.delimiter, bucket)
+
+    return try {
+      val prefixes = ArrayList<String>(100)
+      val objects  = minio.listObjects(ListObjectsArgs.builder()
+        .bucket(bucket)
+        .region(params, bucket)
+        .recursive(true)
+        .prefix(params.prefix)
+        .delimiter(params.delimiter)
+        .headers(params.headers)
+        .queryParams(params.queryParams)
+        .build())
+        .toStream()
+        .map(Result<Item>::get)
+        .peek { if (it.isDir) prefixes.add(it.objectName()) }
+        .filter { !it.isDir }
+        .map { MObject(
+          it.objectName(),
+          it.lastModified().toOffsetDateTime(),
+          it.etag(),
+          bucket.region,
+          MHeaders(),
+          bucket,
+          minio
+        ) }
+        .toIterable()
+
+      BasicSubPathListing(BasicObjectList(objects), prefixes)
+    } catch (e: Throwable) {
+      e.throwCorrect { "Failed to fetch sub-path list from bucket $bucket" }
     }
   }
 

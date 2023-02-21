@@ -1,14 +1,14 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-  kotlin("jvm") version "1.6.20"
-  id("org.jetbrains.dokka") version "1.6.10"
+  kotlin("jvm") version "1.8.0"
+  id("org.jetbrains.dokka") version "1.7.20"
   `java-library`
   `maven-publish`
 }
 
 group = "org.veupathdb.lib.s3"
-version = "0.3.6+s34k-0.7.2"
+version = "0.4.0+s34k-0.8.0"
 
 java {
   sourceCompatibility = JavaVersion.VERSION_1_8
@@ -39,7 +39,7 @@ dependencies {
   implementation("io.minio:minio:8.4.5")
 
   @Suppress("GradlePackageVersionRange")
-  api("org.veupathdb.lib.s3:s34k-core:0.6.1+s34k-0.7.2")
+  api("org.veupathdb.lib.s3:s34k-core:0.7.0+s34k-0.8.0")
 
   testImplementation(kotlin("test"))
 }
