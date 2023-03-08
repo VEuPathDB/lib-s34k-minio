@@ -312,14 +312,13 @@ internal class BucketObjectContainer(
   }
 
   override fun listSubPaths(params: SubPathListParams): SubPathListing {
-    log.debug("Attempting to list sub-paths under prefix {} with delimiter {} in bucket {}", params.prefix, params.delimiter, bucket)
+    log.debug("Attempting to list sub-paths under prefix \"{}\" with delimiter \"{}\" in bucket \"{}\"", params.prefix, params.delimiter, bucket)
 
     return try {
       val prefixes = ArrayList<String>(100)
       val objects  = minio.listObjects(ListObjectsArgs.builder()
         .bucket(bucket)
         .region(params, bucket)
-        .recursive(true)
         .prefix(params.prefix)
         .delimiter(params.delimiter)
         .headers(params.headers)
