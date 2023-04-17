@@ -15,6 +15,7 @@ import org.veupathdb.lib.s3.s34k.*
 import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
 import org.veupathdb.lib.s3.s34k.core.objects.AbstractObjectContainer
 import org.veupathdb.lib.s3.s34k.core.objects.BasicObjectList
+import org.veupathdb.lib.s3.s34k.core.objects.BasicObjectStream
 import org.veupathdb.lib.s3.s34k.core.objects.BasicSubPathListing
 import org.veupathdb.lib.s3.s34k.errors.MultiObjectDeleteError
 import org.veupathdb.lib.s3.s34k.errors.ObjectDeleteError
@@ -422,6 +423,53 @@ internal class BucketObjectContainer(
   override fun stat(path: String, params: ObjectStatParams): ObjectMeta? {
     log.debug("Attempting to stat object '{}' in {}", path, bucket)
     return StatObject(bucket, path, params, minio)
+  }
+
+  override fun stream(params: ObjectStreamParams): ObjectStream {
+    return BasicObjectStream(
+      minio.listObjects(ListObjectsArgs.builder()
+        .bucket(bucket)
+        .prefix(params.prefix)
+        .region(params, bucket)
+        .recursive(true)
+        .headers(params.headers)
+        .queryParams(params.queryParams)
+        .build())
+        .toStream()
+        .map(Result<Item>::get)
+        .map { MObject(
+          it.objectName(),
+          it.lastModified().toOffsetDateTime(),
+          it.etag(),
+          bucket.region,
+          MHeaders(),
+          bucket,
+          minio
+        ) }
+    )
+  }
+
+  override fun streamAll(params: ObjectStreamAllParams): ObjectStream {
+    return BasicObjectStream(
+      minio.listObjects(ListObjectsArgs.builder()
+        .bucket(bucket)
+        .region(params, bucket)
+        .recursive(true)
+        .headers(params.headers)
+        .queryParams(params.queryParams)
+        .build())
+        .toStream()
+        .map(Result<Item>::get)
+        .map { MObject(
+          it.objectName(),
+          it.lastModified().toOffsetDateTime(),
+          it.etag(),
+          bucket.region,
+          MHeaders(),
+          bucket,
+          minio
+        ) }
+    )
   }
 
   override fun touch(path: String, params: ObjectTouchParams): S3Object {
