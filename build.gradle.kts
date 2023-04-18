@@ -39,7 +39,7 @@ dependencies {
   implementation("io.minio:minio:8.4.5")
 
   @Suppress("GradlePackageVersionRange")
-  api("org.veupathdb.lib.s3:s34k-core:0.8.0+s34k-0.9.0-SNAPSHOT")
+  api("org.veupathdb.lib.s3:s34k-core:0.8.0+s34k-0.9.0")
 
   testImplementation(kotlin("test"))
 }
