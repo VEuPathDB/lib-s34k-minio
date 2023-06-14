@@ -6,6 +6,9 @@ import io.minio.GetObjectResponse
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
+internal inline fun GetObjectResponse.size() =
+  headers()["Content-Length"]!!.toLong()
+
 internal inline fun GetObjectResponse.lastModified() =
   OffsetDateTime.parse(headers()["Last-Modified"], DateTimeFormatter.RFC_1123_DATE_TIME)
 

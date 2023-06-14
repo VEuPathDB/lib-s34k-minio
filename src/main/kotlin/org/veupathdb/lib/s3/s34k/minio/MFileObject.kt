@@ -11,9 +11,10 @@ internal class MFileObject(
   path:         String,
   lastModified: OffsetDateTime?,
   eTag:         String,
+  size:         Long,
   region:       String?,
   headers:      Headers,
   bucket:       S3Bucket,
   client:       MinioClient,
   override val localFile: File,
-) : FileObject, MObject(path, lastModified, eTag, region, headers, bucket, client)
+) : FileObject, MObject(path, lastModified, eTag, size, region, headers, bucket, client)

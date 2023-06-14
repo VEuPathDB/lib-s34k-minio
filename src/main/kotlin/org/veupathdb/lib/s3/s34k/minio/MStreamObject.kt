@@ -11,11 +11,12 @@ internal class MStreamObject(
   path: String,
   lastModified: OffsetDateTime?,
   eTag: String,
+  size: Long,
   region: String?,
   override val stream: InputStream,
   headers: Headers,
   bucket: S3Bucket,
   client: MinioClient
-) : StreamObject, MObject(path, lastModified, eTag, region ,headers, bucket, client) {
+) : StreamObject, MObject(path, lastModified, eTag, size, region ,headers, bucket, client) {
   override fun close() = stream.close()
 }
