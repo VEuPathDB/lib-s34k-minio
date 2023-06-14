@@ -18,12 +18,13 @@ internal open class MObject(
   path:         String,
   lastModified: OffsetDateTime?,
   eTag:         String,
+  size:         Long,
   region:       String?,
   headers:      Headers,
   bucket:       S3Bucket,
 
   private val client: MinioClient,
-) : AbstractS3Object(path, lastModified, eTag, region, headers, bucket) {
+) : AbstractS3Object(path, lastModified, eTag, size, region, headers, bucket) {
 
   private val log = LoggerFactory.getLogger(this::class.java)
 
