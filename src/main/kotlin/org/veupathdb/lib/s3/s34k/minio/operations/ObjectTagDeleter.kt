@@ -6,10 +6,6 @@ import io.minio.MinioClient
 import io.minio.SetObjectTagsArgs
 import org.slf4j.LoggerFactory
 import org.veupathdb.lib.s3.s34k.minio.util.*
-import org.veupathdb.lib.s3.s34k.minio.util.bucket
-import org.veupathdb.lib.s3.s34k.minio.util.headers
-import org.veupathdb.lib.s3.s34k.minio.util.queryParams
-import org.veupathdb.lib.s3.s34k.minio.util.region
 import org.veupathdb.lib.s3.s34k.objects.S3Object
 import org.veupathdb.lib.s3.s34k.params.tag.TagDeleteParams
 

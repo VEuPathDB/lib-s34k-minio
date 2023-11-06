@@ -8,7 +8,10 @@ import org.slf4j.LoggerFactory
 import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
 import org.veupathdb.lib.s3.s34k.errors.BucketNotFoundError
 import org.veupathdb.lib.s3.s34k.fields.BucketName
-import org.veupathdb.lib.s3.s34k.minio.util.*
+import org.veupathdb.lib.s3.s34k.minio.util.headers
+import org.veupathdb.lib.s3.s34k.minio.util.hunt
+import org.veupathdb.lib.s3.s34k.minio.util.queryParams
+import org.veupathdb.lib.s3.s34k.minio.util.throwCorrect
 import org.veupathdb.lib.s3.s34k.params.bucket.put.BucketPutParams
 
 internal object BucketInsert {

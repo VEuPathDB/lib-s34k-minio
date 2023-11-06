@@ -1,13 +1,6 @@
 package org.veupathdb.lib.s3.s34k.minio
 
-import io.minio.GetObjectArgs
-import io.minio.ListObjectsArgs
-import io.minio.MinioClient
-import io.minio.PutObjectArgs
-import io.minio.RemoveObjectsArgs
-import io.minio.StatObjectArgs
-import io.minio.Result
-import io.minio.UploadObjectArgs
+import io.minio.*
 import io.minio.messages.DeleteObject
 import io.minio.messages.Item
 import org.slf4j.LoggerFactory
@@ -22,10 +15,6 @@ import org.veupathdb.lib.s3.s34k.errors.ObjectDeleteError
 import org.veupathdb.lib.s3.s34k.errors.S34KError
 import org.veupathdb.lib.s3.s34k.minio.fields.MHeaders
 import org.veupathdb.lib.s3.s34k.minio.operations.*
-import org.veupathdb.lib.s3.s34k.minio.operations.DirectoryDeleter
-import org.veupathdb.lib.s3.s34k.minio.operations.ObjectDelete
-import org.veupathdb.lib.s3.s34k.minio.operations.ObjectExists
-import org.veupathdb.lib.s3.s34k.minio.operations.StatObject
 import org.veupathdb.lib.s3.s34k.minio.util.*
 import org.veupathdb.lib.s3.s34k.objects.*
 import org.veupathdb.lib.s3.s34k.params.DeleteParams
@@ -34,7 +23,6 @@ import org.veupathdb.lib.s3.s34k.params.`object`.directory.DirectoryDeleteParams
 import org.veupathdb.lib.s3.s34k.params.`object`.multi.MultiObjectDeleteParams
 import org.veupathdb.lib.s3.s34k.params.`object`.touch.ObjectTouchParams
 import java.time.OffsetDateTime
-import kotlin.streams.toList
 
 internal class BucketObjectContainer(
   private val bucket: S3Bucket,

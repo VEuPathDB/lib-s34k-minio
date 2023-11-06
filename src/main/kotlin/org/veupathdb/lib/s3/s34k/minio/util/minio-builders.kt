@@ -2,12 +2,7 @@
 
 package org.veupathdb.lib.s3.s34k.minio.util
 
-import io.minio.BaseArgs
-import io.minio.BucketArgs
-import io.minio.ListObjectsArgs
-import io.minio.ObjectArgs
-import io.minio.PutObjectArgs
-import io.minio.UploadObjectArgs
+import io.minio.*
 import org.veupathdb.lib.s3.s34k.S3Client
 import org.veupathdb.lib.s3.s34k.buckets.S3Bucket
 import org.veupathdb.lib.s3.s34k.fields.Headers

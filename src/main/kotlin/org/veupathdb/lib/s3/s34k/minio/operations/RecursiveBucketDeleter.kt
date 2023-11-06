@@ -1,10 +1,9 @@
 package org.veupathdb.lib.s3.s34k.minio.operations
 
 import io.minio.*
-import io.minio.messages.Item
 import io.minio.messages.DeleteObject
+import io.minio.messages.Item
 import org.slf4j.LoggerFactory
-import org.veupathdb.lib.s3.s34k.errors.BucketDeleteError
 import org.veupathdb.lib.s3.s34k.errors.BucketNotFoundError
 import org.veupathdb.lib.s3.s34k.errors.MultiObjectDeleteError
 import org.veupathdb.lib.s3.s34k.errors.ObjectDeleteError
