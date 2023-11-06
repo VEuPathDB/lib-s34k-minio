@@ -345,6 +345,11 @@ internal class BucketObjectContainer(
         ) }
         .toIterable()
 
+      // NOTE!!!!
+      //
+      // This only works because basic object list consumes the stream
+      // immediately, if that was not the case, the prefixes list would be
+      // empty!
       BasicSubPathListing(BasicObjectList(objects), prefixes)
     } catch (e: Throwable) {
       e.throwCorrect { "Failed to fetch sub-path list from bucket $bucket" }
