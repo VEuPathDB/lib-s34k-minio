@@ -17,7 +17,7 @@ import java.time.OffsetDateTime
 internal open class MObject(
   path:         String,
   lastModified: OffsetDateTime?,
-  eTag:         String,
+  eTag:         String?,
   size:         Long,
   region:       String?,
   headers:      Headers,

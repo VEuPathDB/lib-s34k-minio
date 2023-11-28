@@ -10,7 +10,7 @@ import java.time.OffsetDateTime
 internal class MStreamObject(
   path: String,
   lastModified: OffsetDateTime?,
-  eTag: String,
+  eTag: String?,
   size: Long,
   region: String?,
   override val stream: InputStream,

@@ -10,7 +10,7 @@ import java.time.OffsetDateTime
 internal class MFileObject(
   path:         String,
   lastModified: OffsetDateTime?,
-  eTag:         String,
+  eTag:         String?,
   size:         Long,
   region:       String?,
   headers:      Headers,
