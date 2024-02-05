@@ -13,7 +13,7 @@ Minio implementation of the https://github.com/VEuPathDB/lib-s34k[S34k] API.
 .*Adding to project*:
 [source, kotlin]
 ----
-    implementation("org.veupathdb.lib.s3:s34k-minio:0.6.1+s34k-0.10.3")
+    implementation("org.veupathdb.lib.s3:s34k-minio:0.7.0+s34k-0.11.0")
 ----
 
 For a full API reference, see
