@@ -429,7 +429,7 @@ internal class BucketObjectContainer(
     return BasicObjectStream(
       minio.listObjects(ListObjectsArgs.builder()
         .bucket(bucket)
-        .prefix(params.prefix)
+        .optPrefix(params.prefix)
         .region(params, bucket)
         .recursive(true)
         .headers(params.headers)
