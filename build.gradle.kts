@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "org.veupathdb.lib.s3"
-version = "0.6.1+s34k-0.10`.3"
+version = "0.7.0+s34k-0.11.0"
 
 java {
   sourceCompatibility = JavaVersion.VERSION_1_8
@@ -38,7 +38,7 @@ dependencies {
   implementation("org.slf4j:slf4j-api:1.7.36")
   implementation("io.minio:minio:8.5.7")
 
-  api("org.veupathdb.lib.s3:s34k-core:0.9.1+s34k-0.10.3")
+  api("org.veupathdb.lib.s3:s34k-core:0.10.0+s34k-0.11.0")
 
   testImplementation(kotlin("test"))
 }

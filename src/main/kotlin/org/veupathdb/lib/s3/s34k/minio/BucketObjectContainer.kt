@@ -312,7 +312,7 @@ internal class BucketObjectContainer(
       val objects  = minio.listObjects(ListObjectsArgs.builder()
         .bucket(bucket)
         .region(params, bucket)
-        .prefix(params.prefix)
+        .optPrefix(params.prefix)
         .delimiter(params.delimiter)
         .headers(params.headers)
         .queryParams(params.queryParams)
